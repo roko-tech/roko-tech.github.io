@@ -58,6 +58,8 @@ A wrapper `div` with the class `large` can be used to increase the width of an i
 
 ## Embedded content
 
+<iframe title="What is PeerTube? (english subtitles)" width="560" height="315" src="https://peertube.fr/videos/embed/217eefeb-883d-45be-b7fc-a788ad8507d3" frameborder="0" allowfullscreen="" sandbox="allow-same-origin allow-scripts allow-popups"></iframe>
+
 You can also embed a lot of stuff, for example from YouTube, using the `embed.html` include.
 
 {% include embed.html url="https://peertube.fr/w/58UdeJ7NayzNSScpTE3YRa" %}
