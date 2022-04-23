@@ -1,7 +1,7 @@
 title: "https://pbs.twimg.com/profile_images/1487310611985932292/cSS7_sXr_400x400.jpg"
 author: "Pantera"
 description: "Made with <b style=\"color: #f45;\">&lt;3</b>"
-permalink: /:title/
+permalink: /:icon/
 lang: "ar"
 excerpt_separator: "\n\n\n"
 date_format: "%B %d, %Y"
