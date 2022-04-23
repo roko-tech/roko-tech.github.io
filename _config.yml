@@ -17,11 +17,13 @@ minimal: false             # use a dark header
 
 navigation:                # accepts {file, title, url, icon, sidebaricon}
   - {file: "index.html"}
-  - {url: "https://twitter.com/rokogan", title: "Twitter"}
   - {file: "archive.html"}
+  
+  - {url: "https://twitter.com/rokogan", title: "Twitter"}
+  
 
 external:                  # shows a footer with social links - for available icons see fontawesome.com/icons
-  - {title: twitter, icon: fa-brands fa-twitter, url: "https://twitter.com/rokogan"}
+
 
 comments:
 #  disqus_shortname: ""    # see https://disqus.com/
