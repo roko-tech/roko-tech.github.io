@@ -1,4 +1,4 @@
-title: ""
+title: "مقالات تقنية"
 author: "Pantera"
 description: "Made with <b style=\"color: #f45;\">&lt;3</b>"
 permalink: /:title/
@@ -22,13 +22,6 @@ navigation:                # accepts {file, title, url, icon, sidebaricon}
   
 
 external:                  # shows a footer with social links - for available icons see fontawesome.com/icons
-  - {title: Twitter, icon: twitter, url: "https://twitter.com/rokogan"}
-  - {title: Subscribe, icon: rss, url: "/feed.xml"}
-  
-  
-  
-  
-  
   - {file: "index.html", title: "Home"}
 
 comments:
