@@ -28,7 +28,7 @@ external:                  # shows a footer with social links - for available ic
 
 comments:
   disqus: True
-  https-rokogan-github-io: ""    # see https://disqus.com/
+  disqus_shortname:"https-rokogan-github-io"    # see https://disqus.com/
 #  isso_domain: ""         # see https://posativ.org/isso/
 
 plugins:
