@@ -6,6 +6,7 @@ lang: "ar"
 excerpt_separator: "\n\n\n"
 date_format: "%B %d, %Y"
 paginate: 1
+paginate_path: "/blog/page:num/"
 
 # Layout
 
