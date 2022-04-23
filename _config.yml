@@ -1,7 +1,6 @@
 title: ""
 author: "Pantera"
-description:
-  - {file: "index.html", title: "Pantera"}
+description: "Made with <b style=\"color: #f45;\">&lt;3</b>"
 permalink: /:title/
 lang: "ar"
 excerpt_separator: "\n\n\n"
@@ -25,6 +24,12 @@ navigation:                # accepts {file, title, url, icon, sidebaricon}
 external:                  # shows a footer with social links - for available icons see fontawesome.com/icons
   - {title: Twitter, icon: twitter, url: "https://twitter.com/rokogan"}
   - {title: Subscribe, icon: rss, url: "/feed.xml"}
+  
+  
+  
+  
+  
+  - {file: "index.html", title: "Home"}
 
 comments:
   disqus: True
