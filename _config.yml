@@ -16,7 +16,7 @@ minimal: false            # use a dark header
 # Menu
 
 navigation:                # accepts {file, title, url, icon, sidebaricon}
-  - {file: "index.html", title: "Pantera"}
+  - {icon: "https://pbs.twimg.com/profile_images/1487310611985932292/cSS7_sXr_400x400.jpg"}
   - {file: "archive.html"}
   - {url: "https://twitter.com/rokogan", title: "Twitter"}
   
