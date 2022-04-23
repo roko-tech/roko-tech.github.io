@@ -1,6 +1,6 @@
 ---
-title: "About"
+title: "Twitter"
 permalink: "https://twitter.com/rokogan"
-layout: page
+layout: default
 ---
 
