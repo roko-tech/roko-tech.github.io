@@ -20,7 +20,7 @@ navigation:                # accepts {file, title, url, icon, sidebaricon}
   - {file: "README.md"}
 
 external:                  # shows a footer with social links - for available icons see fontawesome.com/icons
-  - {title: Mail, icon: twitter, url: "https://twitter.com/rokogan"}
+  - {title: twitter, icon: fa-brands fa-twitter, url: "https://twitter.com/rokogan"}
 
 comments:
 #  disqus_shortname: ""    # see https://disqus.com/
