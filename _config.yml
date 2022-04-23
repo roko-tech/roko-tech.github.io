@@ -1,6 +1,7 @@
 title: ""
 author: "Pantera"
-description: "Made with <b style=\"color: #f45;\">&lt;3</b>"
+description:
+  - {file: "index.html", title: "Pantera"}
 permalink: /:title/
 lang: "ar"
 excerpt_separator: "\n\n\n"
