@@ -1,13 +1,11 @@
 title: ""
 author: "Pantera"
 description: "Made with <b style=\"color: #f45;\">&lt;3</b>"
-permalink: /:title/
 lang: "ar"
 excerpt_separator: "\n\n\n"
 date_format: "%B %d, %Y"
 paginate: 2
-paginate_path: "/page:num/"
-
+paginate_path: "/blog/page:num/"
 # Layout
 
 show_excerpts: true        # show article excerpts on the home page
