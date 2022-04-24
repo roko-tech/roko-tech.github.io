@@ -27,9 +27,9 @@
 {% else %}
   {% assign pages = site.pages | where_exp: "item", "item.title and item.sitemap != false" | sort: "order" %}
 {% endif %}
-
+</html>
 <header>
-  <a dir="ltr" href="https://rokogan.github.io"><img src="/assets/icon2.png"></a>
+  <a href="https://rokogan.github.io"><img src="/assets/icon2.png"></a>
   {% include menu.html menu=pages %}
 </header>
 
@@ -42,4 +42,4 @@
 </footer>
 {% endif %}
 
-</html>
+
