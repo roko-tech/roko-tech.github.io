@@ -1,5 +1,6 @@
 title: "مقالات تقنية"
 author: "Pantera"
+description: ""
 permalink: /:title/
 lang: "ar"
 excerpt_separator: "\n\n\n"
