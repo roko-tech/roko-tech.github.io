@@ -5,7 +5,7 @@ permalink: /:title/
 lang: "ar"
 excerpt_separator: "\n\n\n"
 date_format: "%B %d, %Y"
-paginate: 5
+paginate: 4
 # Layout
 
 show_excerpts: true        # show article excerpts on the home page
@@ -16,6 +16,7 @@ minimal: false            # use a dark header
 # Menu
 
 navigation:                # accepts {file, title, url, icon, sidebaricon}
+  - {file: "index.html", title: "Home"}
   - {file: "archive.html"}
   - {url: "https://twitter.com/rokogan", title: "Twitter"}
   
