@@ -29,7 +29,13 @@
 {% endif %}
 
 <header>
-  <a href="https://roko-tech.github.io"><img src="/assets/icon2.png"></a>
+<a href="{{ site.url }}"><img class="icono" src="/assets/icono.jpg"></a>
+  <style>
+    img.icono {
+      width: 50px;
+      border-radius: 25px;
+    }
+  </style>
   {% include menu.html menu=pages %}
 </header>
 
