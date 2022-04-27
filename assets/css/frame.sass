@@ -23,3 +23,19 @@ body > header, body > footer
     box-shadow: 0 0 0 1px lighten($dark, 8%)
   html, body > header, body > footer
     background: $dark
+
+{% if site.show_related %}
+
+.related span
+  display: block
+  color: reduce(100)
+
+.related a
+  font-size: 1.2em
+  font-weight: bold
+
+@media (min-width: 30em)
+  .next
+    text-align: right
+
+{% endif %}
