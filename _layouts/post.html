@@ -4,7 +4,13 @@ layout: default
 
 <article>
   {% include meta.html post=page %}
-  {{ content }}
+  {{ content }} 
+  <span>[
+    {% for tag in page.tags %}
+      {% capture tag_name %}{{ tag }}{% endcapture %}
+      <a href="/tag/{{ tag_name }}"><code class="highligher-rouge"><nobr>{{ tag_name }}</nobr></code>&nbsp;</a>
+    {% endfor %}
+  ]</span>
   {% if page.comments != false and site.comments.isso or site.comments.disqus %}
     <hr>
     {% if site.comments.isso_domain %}<div id="isso-thread"></div>{% endif %}
