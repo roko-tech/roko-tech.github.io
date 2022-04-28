@@ -34,6 +34,7 @@
     img.icono {
       width: 50px;
       border-radius: 25px;
+      margin: auto;
     }
   </style>
   {% include menu.html menu=pages %}
@@ -44,7 +45,12 @@
 {% if site.external %}
 <footer>
   <a href="#top" id="back-to-top">Back to top</a>
-  <div>{{ site.description | default: site.title }}</div>
+  <img class="heart" src="/assets/heart.png" alt="heart">
+  <style>
+  img.heart { 
+    width: 17px;
+    margin-top: 15px;
+    </style>
   {% include menu.html menu=site.external %}
 </footer>
 {% endif %}
