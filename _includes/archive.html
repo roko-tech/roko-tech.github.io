@@ -11,7 +11,7 @@
   {% capture tagname %}{{ tagitems[1] }}{% endcapture %}
   <a href="/tag/{{ tagname }}"><code class="highligher-rouge"><nobr>{{ tagname }}</nobr></code></a>
 {% endfor %}
-  <header><h1>{{ include.title | default: page.title }}</h1></header>
+  <header><h2>{{ include.title | default: page.title }}</h2></header>
   <ul class="archive">
     {% for post in site.posts %}
     <li>
