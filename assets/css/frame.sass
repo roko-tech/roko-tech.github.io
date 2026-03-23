@@ -7,17 +7,18 @@ body
   max-width: 60em
   margin: 0 auto
 
-body > header, body > footer
-  background: lighten($dark, 5%)
-  color: $light
+body > header
+  border-bottom: 1px solid lighten($dark, 15%)
+
+body > footer
+  border-top: 1px solid lighten($dark, 15%)
+
+body > main
+  border-bottom: 1px solid lighten($dark, 10%)
 
 @media (min-width: 32em)
   body > header, body > article, body > main, body > footer
     padding: 1.75em calc(22% - 6em)
-
-@media (prefers-color-scheme: dark)
-  html:not([data-theme="light"]) body > header, html:not([data-theme="light"]) body > footer
-    background: $dark
 
 {% if site.show_related %}
 

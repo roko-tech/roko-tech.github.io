@@ -6,8 +6,8 @@ html
     scroll-behavior: auto
 
 body
-  background: $light
-  color: $dark
+  background: $dark
+  color: $light
   font-family: $font-family
   font-weight: $font-weight
   font-size: $font-size
@@ -17,15 +17,6 @@ body
   -webkit-text-size-adjust: 100%
   -webkit-font-smoothing: antialiased
   -moz-osx-font-smoothing: grayscale
-
-[data-theme="dark"] body
-  background: $dark
-  color: $light
-
-@media (prefers-color-scheme: dark)
-  html:not([data-theme="light"]) body
-    background: $dark
-    color: $light
 
 h1, h2, h3, h4, h5, h6
   font-weight: $heading-weight
@@ -157,35 +148,6 @@ pre
   font-size: .85em
   margin-bottom: 1.5em
 
-// Dark mode toggle
-.theme-toggle
-  background: none
-  border: none
-  color: inherit
-  cursor: pointer
-  padding: .4em
-  opacity: .7
-  transition: .2s opacity
-  &:hover
-    opacity: 1
-
-.sun-icon
-  display: none
-
-@media (prefers-color-scheme: dark)
-  html:not([data-theme="light"]) .moon-icon
-    display: none
-  html:not([data-theme="light"]) .sun-icon
-    display: inline
-
-[data-theme="dark"] .moon-icon
-  display: none
-[data-theme="dark"] .sun-icon
-  display: inline
-[data-theme="light"] .sun-icon
-  display: none
-[data-theme="light"] .moon-icon
-  display: inline
 
 // Copy button for code blocks
 .copy-btn
