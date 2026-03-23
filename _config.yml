@@ -1,6 +1,7 @@
 title: "مقالات تقنية"
 author: "Pantera"
 description: "مدونة تقنية عربية تغطي مواضيع البرمجة والتقنية"
+url: "https://roko-tech.github.io"
 permalink: /:title/
 lang: "ar"
 excerpt_separator: "\n\n\n"
@@ -10,27 +11,27 @@ paginate: 8
 
 show_excerpts: true        # show article excerpts on the home page
 show_frame: true           # adds a gray frame to the site
-show_sidebar: false        # show a sidebar instead of the usual header 
+show_sidebar: false        # show a sidebar instead of the usual header
 minimal: false            # use a dark header
-show_related: true 
-back_to_top: true 
+show_related: true
+back_to_top: true
 back_to_top_text: "العودة للأعلى"
 
 # Menu
 
 navigation:                # accepts {file, title, url, icon, sidebaricon}
-  - {file: "index.html", title: "Home"}
-  - {file: "archive.html"}
+  - {file: "index.html", title: "الرئيسية"}
+  - {file: "archive.html", title: "الأرشيف"}
+  - {file: "about.html", title: "عن المدونة"}
   - {url: "https://x.com/rokogan", title: "X"}
-  
 
 external:                  # shows a footer with social links - for available icons see fontawesome.com/icons
-  - {file: "index.html", title: "Home"}
+  - {file: "index.html", title: "الرئيسية"}
+  - {url: "/feed.xml", title: "RSS"}
 
 comments:
-  disqus: True
-  disqus_shortname: "roko-tech"    # see https://disqus.com/
-#  isso_domain: ""         # see https://posativ.org/isso/
+  giscus: true
+  giscus_repo: "roko-tech/roko-tech.github.io"
 
 plugins:
  - jekyll-feed

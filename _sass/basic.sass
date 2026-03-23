@@ -1,3 +1,10 @@
+html
+  scroll-behavior: smooth
+
+@media (prefers-reduced-motion: reduce)
+  html
+    scroll-behavior: auto
+
 body
   background: $light
   color: $dark
@@ -11,8 +18,12 @@ body
   -webkit-font-smoothing: antialiased
   -moz-osx-font-smoothing: grayscale
 
+[data-theme="dark"] body
+  background: $dark
+  color: $light
+
 @media (prefers-color-scheme: dark)
-  body
+  html:not([data-theme="light"]) body
     background: $dark
     color: $light
 
@@ -67,9 +78,9 @@ img.icono
   border-radius: 25px
   margin: 0
 
-img.heart
-  width: 17px
+.heart
   margin-top: 15px
+  opacity: .6
 
 table
   display: inline-block
@@ -102,3 +113,113 @@ pre
   margin: 0 .1em
   padding: .2em .4em
   white-space: nowrap
+
+// Skip to content link
+.skip-link
+  position: absolute
+  top: -100%
+  right: 0
+  background: $link-color
+  color: $light
+  padding: .5em 1em
+  z-index: 100
+  &:focus
+    top: 0
+
+// Reading progress bar
+.reading-progress
+  position: fixed
+  top: 0
+  inset-inline-start: 0
+  width: 100%
+  height: 3px
+  background: $link-color
+  transform-origin: 0 50%
+  animation: grow-progress auto linear
+  animation-timeline: scroll()
+  z-index: 1000
+
+@keyframes grow-progress
+  from
+    transform: scaleX(0)
+  to
+    transform: scaleX(1)
+
+@media (prefers-reduced-motion: reduce)
+  .reading-progress
+    animation: none
+    display: none
+
+// Reading time
+.reading-time
+  display: block
+  color: reduce(100)
+  font-size: .85em
+  margin-bottom: 1.5em
+
+// Dark mode toggle
+.theme-toggle
+  background: none
+  border: none
+  color: inherit
+  cursor: pointer
+  padding: .4em
+  opacity: .7
+  transition: .2s opacity
+  &:hover
+    opacity: 1
+
+.sun-icon
+  display: none
+
+@media (prefers-color-scheme: dark)
+  html:not([data-theme="light"]) .moon-icon
+    display: none
+  html:not([data-theme="light"]) .sun-icon
+    display: inline
+
+[data-theme="dark"] .moon-icon
+  display: none
+[data-theme="dark"] .sun-icon
+  display: inline
+[data-theme="light"] .sun-icon
+  display: none
+[data-theme="light"] .moon-icon
+  display: inline
+
+// Copy button for code blocks
+.copy-btn
+  position: absolute
+  top: .4em
+  left: .4em
+  background: reduce(20)
+  border: none
+  border-radius: 3px
+  color: inherit
+  cursor: pointer
+  font-size: .75em
+  padding: .3em .6em
+  opacity: .6
+  transition: .2s opacity
+  &:hover
+    opacity: 1
+
+// Table of contents
+.toc
+  background: reduce(6)
+  border-radius: 4px
+  padding: 1em 1.5em
+  margin-bottom: 2em
+  summary
+    cursor: pointer
+    font-weight: bold
+    font-size: 1.1em
+  ul
+    margin: .5em 0 0
+    padding-inline-start: 1.5em
+  li
+    margin: .3em 0
+  a
+    text-decoration: none
+    &:hover
+      text-decoration: underline

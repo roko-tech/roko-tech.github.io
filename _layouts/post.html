@@ -4,17 +4,60 @@ layout: default
 
 <article>
   {% include meta.html post=page %}
-  {{ content }} 
+  {% assign words = content | number_of_words %}
+  {% assign minutes = words | divided_by: 150 %}
+  {% if minutes < 1 %}{% assign minutes = 1 %}{% endif %}
+  <span class="reading-time">{{ minutes }} دقائق للقراءة</span>
+
+  {% if words > 800 %}
+  <details class="toc" open>
+    <summary>محتويات المقالة</summary>
+    {% assign headers = content | split: '<h2' %}
+    {% if headers.size > 1 %}
+    <ul>
+    {% for header in headers %}
+      {% if forloop.first %}{% continue %}{% endif %}
+      {% assign header_content = header | split: '</h2>' | first %}
+      {% assign header_id = header_content | split: 'id="' %}
+      {% if header_id.size > 1 %}
+        {% assign id = header_id[1] | split: '"' | first %}
+        {% assign title = header_content | split: '>' | last %}
+        <li><a href="#{{ id }}">{{ title }}</a></li>
+      {% else %}
+        {% assign title = header_content | split: '>' | last %}
+        <li>{{ title }}</li>
+      {% endif %}
+    {% endfor %}
+    </ul>
+    {% endif %}
+  </details>
+  {% endif %}
+
+  {{ content }}
   <span>[
     {% for tag in page.tags %}
       {% capture tag_name %}{{ tag }}{% endcapture %}
       <a href="/tag/{{ tag_name }}"><code class="highlighter-rouge">{{ tag_name }}</code>&nbsp;</a>
     {% endfor %}
   ]</span>
-  {% if page.comments != false and site.comments.isso or site.comments.disqus %}
+  {% if page.comments != false and site.comments.giscus %}
     <hr>
-    {% if site.comments.isso_domain %}<div id="isso-thread"></div>{% endif %}
-    {% if site.comments.disqus_shortname %}<div id="disqus_thread"></div>{% endif %}
+    <script src="https://giscus.app/client.js"
+      data-repo="{{ site.comments.giscus_repo }}"
+      data-repo-id=""
+      data-category="Comments"
+      data-category-id=""
+      data-mapping="pathname"
+      data-strict="0"
+      data-reactions-enabled="1"
+      data-emit-metadata="0"
+      data-input-position="top"
+      data-theme="preferred_color_scheme"
+      data-lang="ar"
+      data-loading="lazy"
+      crossorigin="anonymous"
+      async>
+    </script>
     <noscript>يرجى تفعيل JavaScript لعرض التعليقات.</noscript>
   {% endif %}
 </article>
@@ -25,3 +68,21 @@ layout: default
     <div class="next">{% if page.next.url %}<span>المقالة التالية</span><a href="{{ page.next.url | relative_url }}">{{ page.next.title }}</a>{% endif %}</div>
   </footer>
 {% endif %}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": {{ page.title | jsonify }},
+  "author": { "@type": "Person", "name": {{ site.author | jsonify }} },
+  "datePublished": "{{ page.date | date_to_xmlschema }}",
+  {% if page.last_modified_at %}"dateModified": "{{ page.last_modified_at | date_to_xmlschema }}",{% endif %}
+  "inLanguage": "{{ site.lang }}",
+  "url": "{{ page.url | absolute_url }}",
+  "publisher": {
+    "@type": "Organization",
+    "name": {{ site.title | jsonify }},
+    "url": "{{ site.url }}"
+  }
+}
+</script>
