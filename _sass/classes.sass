@@ -1,44 +1,201 @@
-.title
-  font-size: 1.25em
+// Post cards
+.post-card
+  position: relative
+  background: $bg-surface
+  border: 1px solid $border-subtle
+  border-radius: var(--radius-md)
+  padding: var(--space-6)
+  margin-bottom: var(--space-5)
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease
+  &:hover
+    border-color: $border-hover
+    transform: translateY(-2px)
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3)
 
-.more
-  margin: 2em 0 1em
+.post-card-inner
+  position: relative
+  z-index: 2
+  pointer-events: none
+  a
+    pointer-events: auto
 
-.more a
-  border-radius: 2px
-  border: 1.5px solid $link-color
-  padding: .4em .8em
-  transition: .2s background, .2s color
+.post-card-link
+  position: absolute
+  inset: 0
+  z-index: 1
+  border-radius: var(--radius-md)
 
-.more a:hover
-  color: #fff
-  background: $link-color
-  text-decoration: inherit
+.post-card-title
+  font-size: 1.35em
+  margin: 0 0 var(--space-1)
+  a
+    color: $text-primary
+    text-decoration: none
+    transition: color 0.2s
+  a:hover
+    color: $accent
 
-.archive
-  font-size: 1.1em
+.post-card-date
+  color: $text-secondary
+  font-size: 0.85em
 
-.archive time
+.post-card-excerpt
+  color: $text-secondary
+  font-size: 0.95em
+  line-height: 1.7
+  margin: var(--space-3) 0
+
+.post-card-footer
+  display: flex
+  flex-wrap: wrap
+  align-items: center
+  gap: var(--space-2)
+  margin-top: var(--space-4)
+
+.post-card-read
+  color: $accent
+  font-size: 0.9em
+  font-weight: 600
+  transition: color 0.2s
+
+.post-card:hover .post-card-read
+  color: $accent-hover
+
+// Tag pills
+.post-tag, .archive-tag
   display: inline-block
-  min-width: 10ch
-  min-height: 1.75em
-  margin: 0 .2em
+  background: rgba(99, 102, 241, 0.08)
+  color: $accent
+  font-size: 0.8em
+  padding: 0.2em 0.6em
+  border-radius: 9999px
+  border: 1px solid rgba(99, 102, 241, 0.15)
+  text-decoration: none
+  transition: background 0.2s, border-color 0.2s
 
-.icon
-  height: 1em
-  width: 1em
-  fill: currentColor
-  transition: .2s color
-  vertical-align: middle
-  margin-bottom: .15em
+.archive-tag:hover
+  background: rgba(99, 102, 241, 0.15)
+  border-color: rgba(99, 102, 241, 0.3)
 
-a:hover .icon
-  color: reduce(100)
+// Post tags (bottom of post)
+.post-tags
+  display: flex
+  flex-wrap: wrap
+  gap: var(--space-2)
+  margin-top: var(--space-6)
 
-.full table
-  display: table
-  width: 100%
+.post-tags a
+  display: inline-block
+  background: rgba(99, 102, 241, 0.08)
+  color: $accent
+  font-size: 0.8em
+  padding: 0.3em 0.8em
+  border-radius: 9999px
+  border: 1px solid rgba(99, 102, 241, 0.15)
+  text-decoration: none
+  transition: background 0.2s, border-color 0.2s
+  &:hover
+    background: rgba(99, 102, 241, 0.15)
+    border-color: rgba(99, 102, 241, 0.3)
 
+// Post header (full post page)
+.post-header
+  margin-bottom: var(--space-7)
+  h1
+    font-size: 2.2em
+    line-height: 1.2
+    margin: 0 0 var(--space-3)
+
+.post-meta
+  display: flex
+  flex-wrap: wrap
+  align-items: center
+  gap: var(--space-3)
+  color: $text-secondary
+  font-size: 0.9em
+
+// Pagination
+.pagination
+  display: flex
+  justify-content: space-between
+  padding: var(--space-5) 0
+  a
+    color: $text-secondary
+    font-weight: 600
+    text-decoration: none
+    transition: color 0.2s
+    &:hover
+      color: $accent
+
+// Archive
+.tag-cloud
+  display: flex
+  flex-wrap: wrap
+  gap: var(--space-2)
+  margin-bottom: var(--space-6)
+
+.archive-list
+  list-style: none
+  padding: 0
+
+.archive-item
+  display: flex
+  align-items: baseline
+  gap: var(--space-4)
+  padding: var(--space-3) var(--space-2)
+  border-bottom: 1px solid $border-subtle
+  border-radius: var(--radius-sm)
+  transition: background 0.15s
+  &:last-child
+    border-bottom: none
+  &:hover
+    background: rgba(255, 255, 255, 0.02)
+  time
+    color: $text-tertiary
+    font-size: 0.85em
+    min-width: 8ch
+    font-variant-numeric: tabular-nums
+  a
+    color: $text-primary
+    text-decoration: none
+    font-weight: 600
+    transition: color 0.2s
+    &:hover
+      color: $accent
+
+// 404 page
+.error-page
+  text-align: center
+  padding: var(--space-8) 0
+
+.error-code
+  font-size: 6em
+  font-weight: 700
+  background: linear-gradient(135deg, $accent, $accent-hover)
+  -webkit-background-clip: text
+  -webkit-text-fill-color: transparent
+  background-clip: text
+  line-height: 1
+
+.error-message
+  color: $text-secondary
+  font-size: 1.2em
+  margin: var(--space-4) 0 var(--space-6)
+
+.error-link
+  display: inline-block
+  background: $accent
+  color: white
+  padding: var(--space-3) var(--space-5)
+  border-radius: var(--radius-sm)
+  font-weight: 600
+  text-decoration: none
+  transition: background 0.2s, transform 0.2s
+  &:hover
+    background: $accent-hover
+    transform: translateY(-1px)
+
+// Syntax highlighting (Monokai)
 .rouge-table
   &, th, td, tr, pre
     font-size: inherit
@@ -47,14 +204,15 @@ a:hover .icon
     width: initial
     margin: 0
     padding: 0
+    border: none
   .gl pre
     margin-block: 0
     margin-inline: .25em 1.5em
     opacity: .5
 
-.highlight // https://github.com/richleland/pygments-css/blob/master/monokai.css <http://unlicense.org>
+.highlight
   pre
-    background: rgba(lighten($dark, 6%), 0.9)
+    background: rgba(lighten($bg-base, 6%), 0.9)
     color: white
   .c
     color: #a29f90

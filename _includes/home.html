@@ -1,14 +1,22 @@
 {%- assign posts = paginator.posts | default: site.posts -%}
 {% for post in posts %}
-  <article>
-    {% include meta.html post=post preview=true %}
-    {{ post.excerpt }}
-    <div class="more"><a href="{{ post.url | relative_url }}">اقرأ المزيد</a></div>
+  <article class="post-card">
+    <div class="post-card-inner">
+      {% include meta.html post=post preview=true %}
+      <p class="post-card-excerpt">{{ post.excerpt | strip_html | truncatewords: 40 }}</p>
+      <div class="post-card-footer">
+        <span class="post-card-read">اقرأ المزيد &larr;</span>
+        {% for tag in post.tags limit:3 %}
+          <span class="post-tag">{{ tag }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    <a href="{{ post.url | relative_url }}" class="post-card-link" aria-label="اقرأ: {{ post.title }}"></a>
   </article>
 {% endfor %}
 
 {% if paginator.total_pages > 1 %}
-  <footer>
+  <footer class="pagination">
     {% if paginator.previous_page %}<a href="{{ paginator.previous_page_path | relative_url }}">« أحدث</a>{% else %}<span></span>{% endif %}
     {% if paginator.next_page %}<a href="{{ paginator.next_page_path | relative_url }}">أقدم »</a>{% else %}<span></span>{% endif %}
   </footer>

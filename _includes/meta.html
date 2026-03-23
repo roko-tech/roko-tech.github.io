@@ -1,5 +1,14 @@
+{%- assign date_format = site.date_format | default: "%B %d, %Y" -%}
+{% if include.preview %}
 <header>
-  <h1><a href="{{ include.post.url | relative_url }}">{{ include.post.title }}</a></h1>
-  {%- assign date_format = site.date_format | default: "%B %d, %Y" -%}
-  <time datetime="{{ include.post.date | date_to_xmlschema }}">{{ include.post.date | date: date_format }}</time>
+  <h2 class="post-card-title"><a href="{{ include.post.url | relative_url }}">{{ include.post.title }}</a></h2>
+  <time class="post-card-date" datetime="{{ include.post.date | date_to_xmlschema }}">{{ include.post.date | date: date_format }}</time>
 </header>
+{% else %}
+<header class="post-header">
+  <h1>{{ include.post.title }}</h1>
+  <div class="post-meta">
+    <time datetime="{{ include.post.date | date_to_xmlschema }}">{{ include.post.date | date: date_format }}</time>
+  </div>
+</header>
+{% endif %}

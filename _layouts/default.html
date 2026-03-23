@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#212228">
+<meta name="theme-color" content="#0a0a0b">
 <link rel="icon" type="image/png" sizes="20x20" href="/assets/icon3.png">
 <title>{% if page.title == site.title %}{{ site.title }}{% else %}{{ page.title }} | {{ site.title }}{% endif %}</title>
 <meta name="author" content="{{ page.author | default: site.author | escape }}">
@@ -44,16 +44,12 @@
 {% if site.external %}
 <footer>
   <a href="#top" id="back-to-top">{{ site.back_to_top_text | default: "العودة للأعلى" }}</a>
-  <svg class="heart" width="17" height="15" viewBox="0 0 24 22" aria-hidden="true"><path fill="currentColor" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
   {% include menu.html menu=site.external %}
 </footer>
 {% endif %}
 
 <script>
-// Lazy load images
 document.querySelectorAll('article img').forEach(function(img){img.loading='lazy';img.decoding='async'})
-
-// Copy button for code blocks
 document.querySelectorAll('pre').forEach(function(pre){
   var btn=document.createElement('button');
   btn.className='copy-btn';

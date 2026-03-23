@@ -1,5 +1,6 @@
 <article>
   <h2>الوسوم</h2>
+  <div class="tag-cloud">
 {% capture temptags %}
   {% for tag in site.tags %}
     {{ tag[1].size | plus: 1000 }}#{{ tag[0] }}#{{ tag[1].size }}
@@ -9,12 +10,14 @@
 {% for temptag in sortedtemptags %}
   {% assign tagitems = temptag | split: '#' %}
   {% capture tagname %}{{ tagitems[1] }}{% endcapture %}
-  <a href="/tag/{{ tagname }}"><code class="highlighter-rouge">{{ tagname }}</code></a>
+  <a href="/tag/{{ tagname }}" class="archive-tag">{{ tagname }}</a>
 {% endfor %}
+  </div>
+
   <header><h2>{{ include.title | default: page.title }}</h2></header>
-  <ul class="archive">
+  <ul class="archive-list">
     {% for post in site.posts %}
-    <li>
+    <li class="archive-item">
       <time datetime="{{ post.date | date_to_xmlschema }}">{{ post.date | date: "%Y-%m-%d" }}</time>
       <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
     </li>
