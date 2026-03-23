@@ -2,6 +2,11 @@ title: "مقالات تقنية"
 author: "Pantera"
 description: "مدونة تقنية عربية تغطي مواضيع البرمجة والتقنية"
 url: "https://roko-tech.github.io"
+defaults:
+  - scope:
+      path: ""
+    values:
+      image: /assets/og-default.png
 permalink: /:title/
 lang: "ar"
 excerpt_separator: "\n\n\n"
@@ -10,9 +15,7 @@ paginate: 8
 # Layout
 
 show_excerpts: true        # show article excerpts on the home page
-show_frame: true           # adds a gray frame to the site
-show_sidebar: false        # show a sidebar instead of the usual header
-minimal: false            # use a dark header
+show_frame: true           # uses frame.sass stylesheet
 show_related: true
 back_to_top: true
 back_to_top_text: "العودة للأعلى"
