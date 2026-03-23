@@ -156,7 +156,7 @@ pre
 .skip-link
   position: absolute
   top: -100%
-  right: 0
+  inset-inline-end: 0
   background: $accent
   color: white
   padding: var(--space-2) var(--space-4)
@@ -201,7 +201,7 @@ pre
 .copy-btn
   position: absolute
   top: var(--space-2)
-  left: var(--space-2)
+  inset-inline-end: var(--space-2)
   background: $bg-elevated
   border: 1px solid $border-subtle
   border-radius: var(--radius-sm)
@@ -215,10 +215,12 @@ pre
 pre:hover .copy-btn
   opacity: 1
 
-.copy-btn:hover
+.copy-btn:hover, .copy-btn:focus-visible
   background: $accent
   color: white
   border-color: $accent
+  opacity: 1
+  outline: none
 
 // Table of contents
 .toc
@@ -246,6 +248,91 @@ pre:hover .copy-btn
     transition: color 0.2s
     &:hover
       color: $accent
+  .toc-h3
+    padding-inline-start: var(--space-4)
+    font-size: 0.9em
+
+// Image lightbox
+.lightbox
+  display: none
+  position: fixed
+  inset: 0
+  z-index: 2000
+  background: rgba(0, 0, 0, 0.9)
+  backdrop-filter: blur(8px)
+  -webkit-backdrop-filter: blur(8px)
+  align-items: center
+  justify-content: center
+  cursor: zoom-out
+
+.lightbox.active
+  display: flex
+
+.lightbox img
+  max-width: 90vw
+  max-height: 90vh
+  border-radius: var(--radius-md)
+  object-fit: contain
+
+article img:not(.icono)
+  cursor: zoom-in
+  transition: opacity 0.2s
+  &:hover
+    opacity: 0.85
+
+// Floating back-to-top
+.back-to-top-float
+  position: fixed
+  bottom: var(--space-6)
+  inset-inline-start: var(--space-6)
+  width: 44px
+  height: 44px
+  background: $bg-surface
+  border: 1px solid $border-subtle
+  border-radius: 50%
+  color: $text-secondary
+  cursor: pointer
+  display: flex
+  align-items: center
+  justify-content: center
+  opacity: 0
+  visibility: hidden
+  transition: opacity 0.3s, visibility 0.3s, background 0.2s, color 0.2s, transform 0.2s
+  z-index: 50
+  &.visible
+    opacity: 1
+    visibility: visible
+  &:hover
+    background: $accent
+    color: white
+    border-color: $accent
+    transform: translateY(-2px)
+
+// Social sharing
+.share-buttons
+  display: flex
+  flex-wrap: wrap
+  gap: var(--space-2)
+  margin-top: var(--space-5)
+  padding-top: var(--space-5)
+  border-top: 1px solid $border-subtle
+
+.share-buttons a
+  display: inline-flex
+  align-items: center
+  gap: var(--space-2)
+  background: $bg-surface
+  border: 1px solid $border-subtle
+  border-radius: var(--radius-sm)
+  color: $text-secondary
+  font-size: 0.85em
+  padding: var(--space-2) var(--space-3)
+  text-decoration: none
+  transition: border-color 0.2s, color 0.2s, background 0.2s
+  &:hover
+    border-color: $border-hover
+    color: $text-primary
+    background: $bg-surface-hover
 
 // Animations
 @keyframes fade-in

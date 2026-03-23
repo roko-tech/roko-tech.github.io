@@ -31,6 +31,9 @@ external:                  # shows a footer with social links - for available ic
 comments:
   giscus: true
   giscus_repo: "roko-tech/roko-tech.github.io"
+  giscus_repo_id: "R_kgDOHOjIZg"
+  giscus_category: "General"
+  giscus_category_id: "DIC_kwDOHOjIZs4C5G48"
 
 plugins:
  - jekyll-feed

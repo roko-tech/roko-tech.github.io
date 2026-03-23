@@ -43,23 +43,55 @@
 
 {% if site.external %}
 <footer>
-  <a href="#top" id="back-to-top">{{ site.back_to_top_text | default: "العودة للأعلى" }}</a>
   {% include menu.html menu=site.external %}
 </footer>
 {% endif %}
 
+<!-- Image lightbox -->
+<div class="lightbox" id="lightbox" onclick="this.classList.remove('active')">
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<!-- Floating back-to-top -->
+<button class="back-to-top-float" id="back-to-top-float" aria-label="العودة للأعلى" onclick="window.scrollTo({top:0})">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
 <script>
+// Lazy load images
 document.querySelectorAll('article img').forEach(function(img){img.loading='lazy';img.decoding='async'})
+
+// Copy button for code blocks
 document.querySelectorAll('pre').forEach(function(pre){
   var btn=document.createElement('button');
   btn.className='copy-btn';
   btn.textContent='نسخ';
+  btn.setAttribute('aria-label','نسخ الكود');
   btn.addEventListener('click',function(){
-    navigator.clipboard.writeText(pre.textContent).then(function(){btn.textContent='تم!';setTimeout(function(){btn.textContent='نسخ'},2000)});
+    navigator.clipboard.writeText(pre.textContent).then(function(){
+      btn.textContent='تم!';setTimeout(function(){btn.textContent='نسخ'},2000);
+    }).catch(function(){
+      btn.textContent='خطأ';setTimeout(function(){btn.textContent='نسخ'},2000);
+    });
   });
   pre.style.position='relative';
   pre.appendChild(btn);
 })
+
+// Image lightbox
+var lb=document.getElementById('lightbox'),lbi=document.getElementById('lightbox-img');
+document.querySelectorAll('article img:not(.icono)').forEach(function(img){
+  img.addEventListener('click',function(){
+    lbi.src=this.src;lbi.alt=this.alt;lb.classList.add('active');
+  });
+});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')lb.classList.remove('active')});
+
+// Floating back-to-top
+var btt=document.getElementById('back-to-top-float');
+window.addEventListener('scroll',function(){
+  btt.classList.toggle('visible',window.scrollY>400);
+},{passive:true});
 </script>
 </body>
 </html>
