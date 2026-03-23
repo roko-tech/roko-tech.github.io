@@ -1,6 +1,6 @@
 title: "مقالات تقنية"
 author: "Pantera"
-description: ""
+description: "مدونة تقنية عربية تغطي مواضيع البرمجة والتقنية"
 permalink: /:title/
 lang: "ar"
 excerpt_separator: "\n\n\n"
@@ -14,7 +14,7 @@ show_sidebar: false        # show a sidebar instead of the usual header
 minimal: false            # use a dark header
 show_related: true 
 back_to_top: true 
-back_to_top_text: "Back to top"
+back_to_top_text: "العودة للأعلى"
 
 # Menu
 
@@ -36,3 +36,4 @@ plugins:
  - jekyll-feed
  - jekyll-paginate
  - jekyll-seo-tag
+ - jekyll-sitemap

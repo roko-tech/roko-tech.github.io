@@ -3,13 +3,13 @@
   <article>
     {% include meta.html post=post preview=true %}
     {{ post.excerpt }}
-    <div class="more"><a href="{{ post.url | relative_url }}">read more</a></div>
+    <div class="more"><a href="{{ post.url | relative_url }}">اقرأ المزيد</a></div>
   </article>
 {% endfor %}
 
 {% if paginator.total_pages > 1 %}
   <footer>
-    {% if paginator.previous_page %}<a href="{{ paginator.previous_page_path | relative_url }}">« newer</a>{% else %}<span></span>{% endif %}
-    {% if paginator.next_page %}<a href="{{ paginator.next_page_path | relative_url }}">older »</a>{% else %}<span></span>{% endif %}
+    {% if paginator.previous_page %}<a href="{{ paginator.previous_page_path | relative_url }}">أحدث »</a>{% else %}<span></span>{% endif %}
+    {% if paginator.next_page %}<a href="{{ paginator.next_page_path | relative_url }}">« أقدم</a>{% else %}<span></span>{% endif %}
   </footer>
 {% endif %}
