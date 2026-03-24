@@ -264,6 +264,145 @@ main#main-content { padding: 0 !important; }
   transform: translateX(-50%) translateY(0);
 }
 
+/* Publish button */
+.btn-publish {
+  background: #6366f1 !important;
+  color: #fff !important;
+  padding: 6px 14px !important;
+  border-radius: 6px !important;
+  gap: 6px;
+}
+.btn-publish:hover {
+  background: #818cf8 !important;
+}
+.btn-settings {
+  color: #5a5a5e !important;
+}
+.btn-settings:hover {
+  color: #8a8a8e !important;
+}
+
+/* Modal overlay */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: #111113;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 12px;
+  width: 90%;
+  max-width: 480px;
+  padding: 24px;
+  direction: rtl;
+}
+.modal h3 {
+  margin: 0 0 20px;
+  font-size: 1.1em;
+  color: #ededef;
+}
+.modal label {
+  display: block;
+  font-size: 0.8em;
+  color: #8a8a8e;
+  margin-bottom: 6px;
+}
+.modal input, .modal textarea {
+  width: 100%;
+  background: #0a0a0b;
+  border: 1px solid rgba(255,255,255,0.10);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #ededef;
+  font-family: inherit;
+  font-size: 0.9em;
+  margin-bottom: 16px;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.modal input:focus, .modal textarea:focus {
+  border-color: #6366f1;
+}
+.modal textarea { resize: vertical; min-height: 60px; }
+.modal-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-start;
+  margin-top: 8px;
+}
+.modal-actions button {
+  padding: 10px 20px;
+  border-radius: 8px;
+  border: none;
+  font-family: inherit;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.btn-primary {
+  background: #6366f1;
+  color: #fff;
+}
+.btn-primary:hover { background: #818cf8; }
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.btn-secondary {
+  background: #1e1e22;
+  color: #8a8a8e;
+}
+.btn-secondary:hover { background: #2a2a2e; }
+
+/* Token status */
+.token-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75em;
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: #0a0a0b;
+}
+.token-status.connected { color: #22c55e; }
+.token-status.disconnected { color: #ef4444; }
+.token-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.token-remove {
+  margin-inline-start: auto;
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 0.9em;
+  padding: 2px 8px;
+}
+.token-remove:hover { text-decoration: underline; }
+.token-help {
+  font-size: 0.75em;
+  color: #5a5a5e;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+.token-help a {
+  color: #6366f1;
+  text-decoration: none;
+}
+.token-help a:hover { text-decoration: underline; }
+
 /* Mobile */
 @media (max-width: 768px) {
   .mobile-tabs { display: flex; }
@@ -306,6 +445,8 @@ main#main-content { padding: 0 !important; }
       <button data-action="export-md" title="تصدير (Ctrl+S)"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
       <button data-action="copy-md" title="نسخ Markdown">MD</button>
       <button data-action="copy-html" title="نسخ HTML">HTML</button>
+      <button data-action="settings" class="btn-settings" title="إعدادات"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.32 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      <button data-action="publish" class="btn-publish" title="نشر المقالة"><svg viewBox="0 0 24 24" width="14" height="14"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg> نشر</button>
     </div>
   </div>
 
@@ -338,6 +479,45 @@ main#main-content { padding: 0 !important; }
 
 <!-- Hidden file input -->
 <input type="file" id="file-import" accept=".md,.txt,.markdown" hidden>
+
+<!-- Publish Modal -->
+<div class="modal-overlay" id="publish-modal">
+  <div class="modal">
+    <h3>نشر مقالة جديدة</h3>
+    <div id="publish-token-warning" style="display:none;padding:12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;margin-bottom:16px;font-size:0.8em;color:#ef4444;">
+      يجب إعداد GitHub Token أولاً من الإعدادات
+    </div>
+    <label>عنوان المقالة *</label>
+    <input type="text" id="publish-title" placeholder="مثال: كيفية إعداد سيرفر خاص">
+    <label>الوصف</label>
+    <textarea id="publish-desc" placeholder="وصف مختصر للمقالة (اختياري)"></textarea>
+    <label>الوسوم (مفصولة بفاصلة)</label>
+    <input type="text" id="publish-tags" placeholder="مثال: تقنية, لينكس, سيرفر">
+    <div class="modal-actions">
+      <button class="btn-primary" id="publish-btn" onclick="publishPost()">نشر الآن</button>
+      <button class="btn-secondary" onclick="closeModal('publish-modal')">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <h3>إعدادات المحرر</h3>
+    <div id="token-status-display"></div>
+    <label>GitHub Personal Access Token</label>
+    <input type="password" id="settings-token" placeholder="ghp_xxxxxxxxxxxx">
+    <div class="token-help">
+      أنشئ توكن من
+      <a href="https://github.com/settings/tokens/new?scopes=repo&description=roko-editor" target="_blank" rel="noopener">GitHub Settings → Tokens</a>
+      <br>اختر صلاحية <strong>repo</strong> فقط. التوكن يُحفظ في متصفحك فقط ولا يُرسل لأي طرف آخر.
+    </div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="saveSettings()">حفظ</button>
+      <button class="btn-secondary" onclick="closeModal('settings-modal')">إغلاق</button>
+    </div>
+  </div>
+</div>
 
 <!-- Toast -->
 <div class="editor-toast" id="editor-toast"></div>
@@ -505,6 +685,8 @@ main#main-content { padding: 0 !important; }
       case 'hr': insertAtCursor('\n---\n'); break;
       case 'import': fileInput.click(); break;
       case 'export-md': exportMarkdown(); break;
+      case 'publish': openPublishModal(); break;
+      case 'settings': openModal('settings-modal'); updateTokenStatus(); break;
       case 'copy-md':
         navigator.clipboard.writeText(input.value).then(function() { showToast('تم نسخ Markdown'); });
         break;
@@ -599,6 +781,165 @@ main#main-content { padding: 0 !important; }
       document.body.style.userSelect = '';
     }
   });
+
+  // === Modals ===
+  var REPO = 'roko-tech/roko-tech.github.io';
+  var TOKEN_KEY = 'roko-editor-gh-token';
+
+  window.openModal = function(id) {
+    document.getElementById(id).classList.add('active');
+  };
+  window.closeModal = function(id) {
+    document.getElementById(id).classList.remove('active');
+  };
+
+  // Close modals on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) overlay.classList.remove('active');
+    });
+  });
+  // Close modals on Escape
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.active').forEach(function(m) {
+        m.classList.remove('active');
+      });
+    }
+  });
+
+  // === Settings ===
+  window.updateTokenStatus = function() {
+    var token = localStorage.getItem(TOKEN_KEY);
+    var container = document.getElementById('token-status-display');
+    if (token) {
+      container.innerHTML = '<div class="token-status connected"><span class="token-dot"></span>متصل — التوكن محفوظ (' + token.substring(0, 7) + '...)<button class="token-remove" onclick="removeToken()">حذف</button></div>';
+      document.getElementById('settings-token').value = '';
+      document.getElementById('settings-token').placeholder = 'التوكن محفوظ — أدخل توكن جديد للاستبدال';
+    } else {
+      container.innerHTML = '<div class="token-status disconnected"><span class="token-dot"></span>غير متصل — أدخل GitHub Token للنشر</div>';
+      document.getElementById('settings-token').placeholder = 'ghp_xxxxxxxxxxxx';
+    }
+  };
+
+  window.removeToken = function() {
+    localStorage.removeItem(TOKEN_KEY);
+    updateTokenStatus();
+    showToast('تم حذف التوكن');
+  };
+
+  window.saveSettings = function() {
+    var tokenInput = document.getElementById('settings-token');
+    var token = tokenInput.value.trim();
+    if (token) {
+      localStorage.setItem(TOKEN_KEY, token);
+      tokenInput.value = '';
+      showToast('تم حفظ التوكن');
+    }
+    updateTokenStatus();
+    closeModal('settings-modal');
+  };
+
+  // === Publish ===
+  function slugify(text) {
+    return text
+      .replace(/[^\u0621-\u064Aa-zA-Z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .substring(0, 80);
+  }
+
+  window.openPublishModal = function() {
+    var token = localStorage.getItem(TOKEN_KEY);
+    var warning = document.getElementById('publish-token-warning');
+    var btn = document.getElementById('publish-btn');
+    if (!token) {
+      warning.style.display = 'block';
+      btn.disabled = true;
+    } else {
+      warning.style.display = 'none';
+      btn.disabled = false;
+    }
+    openModal('publish-modal');
+    document.getElementById('publish-title').focus();
+  };
+
+  window.publishPost = function() {
+    var token = localStorage.getItem(TOKEN_KEY);
+    if (!token) { showToast('يجب إعداد GitHub Token أولاً'); return; }
+
+    var title = document.getElementById('publish-title').value.trim();
+    if (!title) { showToast('العنوان مطلوب'); return; }
+
+    var desc = document.getElementById('publish-desc').value.trim();
+    var tags = document.getElementById('publish-tags').value.trim();
+    var content = input.value;
+
+    if (!content.trim()) { showToast('المقالة فارغة'); return; }
+
+    var btn = document.getElementById('publish-btn');
+    btn.disabled = true;
+    btn.textContent = 'جارٍ النشر...';
+
+    // Build front matter
+    var frontMatter = '---\n';
+    frontMatter += 'title: "' + title.replace(/"/g, '\\"') + '"\n';
+    frontMatter += 'layout: post\n';
+    if (desc) frontMatter += 'description: "' + desc.replace(/"/g, '\\"') + '"\n';
+    if (tags) {
+      var tagList = tags.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
+      frontMatter += 'tags: [' + tagList.map(function(t) { return '"' + t + '"'; }).join(', ') + ']\n';
+    }
+    frontMatter += '---\n\n';
+
+    var fullContent = frontMatter + content;
+
+    // Build filename: YYYY-MM-DD-slug.md
+    var now = new Date();
+    var dateStr = now.getFullYear() + '-' +
+      String(now.getMonth() + 1).padStart(2, '0') + '-' +
+      String(now.getDate()).padStart(2, '0');
+    var slug = slugify(title) || 'post';
+    var filename = '_posts/' + dateStr + '-' + slug + '.md';
+
+    // GitHub API: create file
+    fetch('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(filename), {
+      method: 'PUT',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json',
+        'Accept': 'application/vnd.github.v3+json'
+      },
+      body: JSON.stringify({
+        message: 'نشر مقالة: ' + title,
+        content: btoa(unescape(encodeURIComponent(fullContent)))
+      })
+    })
+    .then(function(res) {
+      if (!res.ok) return res.json().then(function(err) { throw new Error(err.message || 'فشل النشر'); });
+      return res.json();
+    })
+    .then(function(data) {
+      btn.disabled = false;
+      btn.textContent = 'نشر الآن';
+      closeModal('publish-modal');
+      showToast('تم النشر بنجاح! سيظهر المقال خلال دقائق');
+      // Clear form
+      document.getElementById('publish-title').value = '';
+      document.getElementById('publish-desc').value = '';
+      document.getElementById('publish-tags').value = '';
+      // Clear editor
+      input.value = '';
+      renderPreview();
+      localStorage.removeItem(STORAGE_KEY);
+    })
+    .catch(function(err) {
+      btn.disabled = false;
+      btn.textContent = 'نشر الآن';
+      showToast('خطأ: ' + err.message);
+    });
+  };
 
   // === Mobile tabs ===
   window.switchTab = function(tab) {
