@@ -508,9 +508,13 @@ main#main-content { padding: 0 !important; }
     <label>GitHub Personal Access Token</label>
     <input type="password" id="settings-token" placeholder="ghp_xxxxxxxxxxxx">
     <div class="token-help">
-      أنشئ توكن من
-      <a href="https://github.com/settings/tokens/new?scopes=repo&description=roko-editor" target="_blank" rel="noopener">GitHub Settings → Tokens</a>
-      <br>اختر صلاحية <strong>repo</strong> فقط. التوكن يُحفظ في متصفحك فقط ولا يُرسل لأي طرف آخر.
+      أنشئ توكن محدود الصلاحية من
+      <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub Settings → Fine-grained Tokens</a>
+      <br>الإعدادات المطلوبة:
+      <br>• <strong>Repository access</strong> → Only select repositories → <strong>roko-tech.github.io</strong>
+      <br>• <strong>Permissions</strong> → Contents → <strong>Read and write</strong>
+      <br>• حدد مدة انتهاء قصيرة (30-90 يوم)
+      <br>التوكن يُحفظ في متصفحك فقط ولا يُرسل لأي طرف آخر.
     </div>
     <div class="modal-actions">
       <button class="btn-primary" onclick="saveSettings()">حفظ</button>
