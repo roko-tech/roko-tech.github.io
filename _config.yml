@@ -25,6 +25,7 @@ back_to_top_text: "العودة للأعلى"
 navigation:                # accepts {file, title, url, icon, sidebaricon}
   - {file: "index.html", title: "الرئيسية"}
   - {file: "archive.html", title: "الأرشيف"}
+  - {file: "editor.html", title: "المحرر"}
   - {url: "https://x.com/rokogan", title: "X"}
 
 external:                  # shows a footer with social links - for available icons see fontawesome.com/icons
