@@ -346,10 +346,22 @@ article img:not(.icono)
   padding: var(--space-2) var(--space-3)
   text-decoration: none
   transition: border-color 0.2s, color 0.2s, background 0.2s
+  svg
+    width: 18px
+    height: 18px
   &:hover
     border-color: $border-hover
     color: $text-primary
     background: $bg-surface-hover
+  &[href*="x.com"]:hover, &[href*="twitter"]:hover
+    color: #ededef
+    border-color: rgba(255, 255, 255, 0.2)
+  &[href*="wa.me"]:hover
+    color: #25D366
+    border-color: rgba(37, 211, 102, 0.3)
+  &[href*="t.me"]:hover
+    color: #26A5E4
+    border-color: rgba(38, 165, 228, 0.3)
 
 // Animations
 @keyframes fade-in

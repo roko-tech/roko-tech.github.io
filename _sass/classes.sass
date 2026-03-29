@@ -56,10 +56,12 @@
   color: $accent
   font-size: 0.9em
   font-weight: 600
-  transition: color 0.2s
+  transition: color 0.2s, transform 0.2s
+  display: inline-block
 
 .post-card:hover .post-card-read
   color: $accent-hover
+  transform: translateX(-4px)
 
 // Tag pills
 .post-tag, .archive-tag
