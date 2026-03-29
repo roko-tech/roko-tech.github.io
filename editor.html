@@ -537,7 +537,7 @@ main#main-content { padding: 0 !important; }
 
 <!-- Markdown parser + sanitizer -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.7/purify.min.js" integrity="sha512-78KH17QLT5e55GJqP76vutp1D2iAoy06WcYBXB6iBCsmO6wWzx0Qdg8EDpm8mKXv68BcvHOyeeP4wxAL0twJGQ==" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/16.3.0/lib/marked.umd.min.js" integrity="sha512-gxBP/mcwo9A5lJDFbVfXNb1hSLpOkHLLXAjld8HfCWjVIZnA3nlNnIqSTLvtwF4t55Dt4Rzh7phL3tJuKZ+teQ==" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.7/marked.min.js" crossorigin="anonymous"></script>
 
 <script>
 (function() {
@@ -554,14 +554,13 @@ main#main-content { padding: 0 !important; }
   var debounceTimer, saveTimer;
 
   // Configure marked
-  var markedLib = (typeof marked !== 'undefined') ? (marked.marked || marked) : null;
-  if (markedLib && markedLib.setOptions) {
-    markedLib.setOptions({ gfm: true, breaks: true });
+  if (typeof marked !== 'undefined') {
+    marked.setOptions({ gfm: true, breaks: true });
   }
 
   // === Preview ===
   function renderPreview() {
-    if (!markedLib) {
+    if (typeof marked === 'undefined') {
       preview.innerHTML = '<div class="preview-empty">تعذر تحميل محرك المعاينة</div>';
       return;
     }
@@ -570,7 +569,7 @@ main#main-content { padding: 0 !important; }
       preview.innerHTML = '<div class="preview-empty">المعاينة ستظهر هنا</div>';
       return;
     }
-    preview.innerHTML = DOMPurify.sanitize(markedLib.parse(val));
+    preview.innerHTML = DOMPurify.sanitize(marked.parse(val));
   }
 
   input.addEventListener('input', function() {
@@ -715,8 +714,8 @@ main#main-content { padding: 0 !important; }
         navigator.clipboard.writeText(input.value).then(function() { showToast('تم نسخ Markdown'); });
         break;
       case 'copy-html':
-        if (markedLib) {
-          navigator.clipboard.writeText(markedLib.parse(input.value)).then(function() { showToast('تم نسخ HTML'); });
+        if (typeof marked !== 'undefined') {
+          navigator.clipboard.writeText(marked.parse(input.value)).then(function() { showToast('تم نسخ HTML'); });
         }
         break;
       case 'export-post': exportAsPost(); break;
