@@ -46,7 +46,7 @@
 
 <!-- Image lightbox -->
 <div class="lightbox" id="lightbox">
-  <img id="lightbox-img" src="" alt="">
+  <img id="lightbox-img" alt="">
 </div>
 
 <!-- Floating back-to-top -->
@@ -74,7 +74,7 @@
 
 <script>
 // Lazy load images
-document.querySelectorAll('article img').forEach(function(img){img.loading='lazy';img.decoding='async'})
+document.querySelectorAll('article img:not([loading])').forEach(function(img){img.loading='lazy';img.decoding='async'})
 
 // Copy button for code blocks
 document.querySelectorAll('pre').forEach(function(pre){

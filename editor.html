@@ -265,24 +265,24 @@ main#main-content { padding: 0 !important; }
 }
 
 /* Publish button */
-.btn-publish {
-  background: #6366f1 !important;
-  color: #fff !important;
-  padding: 6px 14px !important;
-  border-radius: 6px !important;
+.editor-toolbar .btn-publish {
+  background: #6366f1;
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 6px;
   gap: 6px;
 }
-.btn-publish:hover {
-  background: #818cf8 !important;
+.editor-toolbar .btn-publish:hover {
+  background: #818cf8;
 }
-#btn-export-post:hover {
-  background: #16a34a !important;
+.editor-toolbar #btn-export-post:hover {
+  background: #16a34a;
 }
-.btn-settings {
-  color: #5a5a5e !important;
+.editor-toolbar .btn-settings {
+  color: #5a5a5e;
 }
-.btn-settings:hover {
-  color: #8a8a8e !important;
+.editor-toolbar .btn-settings:hover {
+  color: #8a8a8e;
 }
 
 /* Modal overlay */
@@ -405,6 +405,9 @@ main#main-content { padding: 0 !important; }
   text-decoration: none;
 }
 .token-help a:hover { text-decoration: underline; }
+.token-help p { margin: 4px 0; }
+.token-help ul { margin: 4px 0; padding-inline-start: 1.2em; }
+.token-help li { margin: 2px 0; }
 
 /* Mobile */
 @media (max-width: 768px) {
@@ -498,8 +501,8 @@ main#main-content { padding: 0 !important; }
     <label>الوسوم (مفصولة بفاصلة)</label>
     <input type="text" id="publish-tags" placeholder="مثال: تقنية, لينكس, سيرفر">
     <div class="modal-actions">
-      <button class="btn-primary" id="publish-btn" data-modal-action="publish">نشر الآن</button>
-      <button class="btn-secondary" data-modal-action="close" data-modal-target="publish-modal">إلغاء</button>
+      <button type="button" class="btn-primary" id="publish-btn" data-modal-action="publish">نشر الآن</button>
+      <button type="button" class="btn-secondary" data-modal-action="close" data-modal-target="publish-modal">إلغاء</button>
     </div>
   </div>
 </div>
@@ -512,17 +515,19 @@ main#main-content { padding: 0 !important; }
     <label>GitHub Personal Access Token</label>
     <input type="password" id="settings-token" placeholder="ghp_xxxxxxxxxxxx">
     <div class="token-help">
-      أنشئ توكن محدود الصلاحية من
-      <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub Settings → Fine-grained Tokens</a>
-      <br>الإعدادات المطلوبة:
-      <br>• <strong>Repository access</strong> → Only select repositories → <strong>roko-tech.github.io</strong>
-      <br>• <strong>Permissions</strong> → Contents → <strong>Read and write</strong>
-      <br>• حدد مدة انتهاء قصيرة (30-90 يوم)
-      <br>التوكن يُحفظ في متصفحك فقط ولا يُرسل لأي طرف آخر.
+      <p>أنشئ توكن محدود الصلاحية من
+      <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub Settings → Fine-grained Tokens</a></p>
+      <p>الإعدادات المطلوبة:</p>
+      <ul>
+        <li><strong>Repository access</strong> → Only select repositories → <strong>roko-tech.github.io</strong></li>
+        <li><strong>Permissions</strong> → Contents → <strong>Read and write</strong></li>
+        <li>حدد مدة انتهاء قصيرة (30-90 يوم)</li>
+      </ul>
+      <p>التوكن يُحفظ في متصفحك فقط ولا يُرسل لأي طرف آخر.</p>
     </div>
     <div class="modal-actions">
-      <button class="btn-primary" data-modal-action="save-settings">حفظ</button>
-      <button class="btn-secondary" data-modal-action="close" data-modal-target="settings-modal">إغلاق</button>
+      <button type="button" class="btn-primary" data-modal-action="save-settings">حفظ</button>
+      <button type="button" class="btn-secondary" data-modal-action="close" data-modal-target="settings-modal">إغلاق</button>
     </div>
   </div>
 </div>
@@ -884,7 +889,7 @@ main#main-content { padding: 0 !important; }
     var token = sessionStorage.getItem(TOKEN_KEY);
     var container = document.getElementById('token-status-display');
     if (token) {
-      container.innerHTML = '<div class="token-status connected"><span class="token-dot"></span>متصل — التوكن محفوظ<button class="token-remove" data-modal-action="remove-token">حذف</button></div>';
+      container.innerHTML = '<div class="token-status connected"><span class="token-dot"></span>متصل — التوكن محفوظ<button type="button" class="token-remove" data-modal-action="remove-token">حذف</button></div>';
       document.getElementById('settings-token').value = '';
       document.getElementById('settings-token').placeholder = 'التوكن محفوظ — أدخل توكن جديد للاستبدال';
     } else {
