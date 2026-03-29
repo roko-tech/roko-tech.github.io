@@ -554,13 +554,14 @@ main#main-content { padding: 0 !important; }
   var debounceTimer, saveTimer;
 
   // Configure marked
-  if (typeof marked !== 'undefined') {
-    marked.setOptions({ gfm: true, breaks: true });
+  var markedLib = (typeof marked !== 'undefined') ? (marked.marked || marked) : null;
+  if (markedLib && markedLib.setOptions) {
+    markedLib.setOptions({ gfm: true, breaks: true });
   }
 
   // === Preview ===
   function renderPreview() {
-    if (typeof marked === 'undefined') {
+    if (!markedLib) {
       preview.innerHTML = '<div class="preview-empty">تعذر تحميل محرك المعاينة</div>';
       return;
     }
@@ -569,7 +570,7 @@ main#main-content { padding: 0 !important; }
       preview.innerHTML = '<div class="preview-empty">المعاينة ستظهر هنا</div>';
       return;
     }
-    preview.innerHTML = DOMPurify.sanitize(marked.parse(val));
+    preview.innerHTML = DOMPurify.sanitize(markedLib.parse(val));
   }
 
   input.addEventListener('input', function() {
@@ -714,8 +715,8 @@ main#main-content { padding: 0 !important; }
         navigator.clipboard.writeText(input.value).then(function() { showToast('تم نسخ Markdown'); });
         break;
       case 'copy-html':
-        if (typeof marked !== 'undefined') {
-          navigator.clipboard.writeText(marked.parse(input.value)).then(function() { showToast('تم نسخ HTML'); });
+        if (markedLib) {
+          navigator.clipboard.writeText(markedLib.parse(input.value)).then(function() { showToast('تم نسخ HTML'); });
         }
         break;
       case 'export-post': exportAsPost(); break;
