@@ -79,6 +79,7 @@ document.querySelectorAll('article img:not([loading])').forEach(function(img){im
 // Copy button for code blocks
 document.querySelectorAll('pre').forEach(function(pre){
   var btn=document.createElement('button');
+  btn.type='button';
   btn.className='copy-btn';
   btn.textContent='نسخ';
   btn.setAttribute('aria-label','نسخ الكود');
@@ -109,7 +110,7 @@ document.addEventListener('keydown',function(e){if(e.key==='Escape')lb.classList
 
 // Floating back-to-top
 var btt=document.getElementById('back-to-top-float');
-btt.addEventListener('click',function(){window.scrollTo({top:0})});
+btt.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});
 window.addEventListener('scroll',function(){
   btt.classList.toggle('visible',window.scrollY>400);
 },{passive:true});

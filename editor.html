@@ -862,11 +862,16 @@ main#main-content { padding: 0 !important; }
   var REPO = 'roko-tech/roko-tech.github.io';
   var TOKEN_KEY = 'roko-editor-gh-token';
 
+  var previouslyFocused = null;
   window.openModal = function(id) {
+    previouslyFocused = document.activeElement;
     document.getElementById(id).classList.add('active');
   };
   window.closeModal = function(id) {
     document.getElementById(id).classList.remove('active');
+    if (previouslyFocused && previouslyFocused.focus) {
+      previouslyFocused.focus();
+    }
   };
 
   // Close modals on overlay click
