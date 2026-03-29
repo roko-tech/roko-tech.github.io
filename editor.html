@@ -456,8 +456,8 @@ main#main-content { padding: 0 !important; }
 
   <!-- Mobile tabs -->
   <div class="mobile-tabs">
-    <button id="tab-editor" class="active" onclick="switchTab('editor')">المحرر</button>
-    <button id="tab-preview" onclick="switchTab('preview')">المعاينة</button>
+    <button id="tab-editor" class="active" data-tab="editor">المحرر</button>
+    <button id="tab-preview" data-tab="preview">المعاينة</button>
   </div>
 
   <!-- Split Panes -->
@@ -467,7 +467,7 @@ main#main-content { padding: 0 !important; }
         <span>MARKDOWN</span>
         <span class="autosave-indicator" id="autosave-indicator">تم الحفظ</span>
       </div>
-      <textarea id="md-input" dir="rtl" spellcheck="true" placeholder="ابدأ الكتابة هنا..."></textarea>
+      <textarea id="md-input" dir="rtl" spellcheck="true" placeholder="ابدأ الكتابة هنا..." aria-label="محرر Markdown"></textarea>
     </div>
 
     <div class="editor-resize-handle" id="resize-handle"></div>
@@ -486,7 +486,7 @@ main#main-content { padding: 0 !important; }
 
 <!-- Publish Modal -->
 <div class="modal-overlay" id="publish-modal">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="نشر مقالة جديدة">
     <h3>نشر مقالة جديدة</h3>
     <div id="publish-token-warning" style="display:none;padding:12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;margin-bottom:16px;font-size:0.8em;color:#ef4444;">
       يجب إعداد GitHub Token أولاً من الإعدادات
@@ -498,15 +498,15 @@ main#main-content { padding: 0 !important; }
     <label>الوسوم (مفصولة بفاصلة)</label>
     <input type="text" id="publish-tags" placeholder="مثال: تقنية, لينكس, سيرفر">
     <div class="modal-actions">
-      <button class="btn-primary" id="publish-btn" onclick="publishPost()">نشر الآن</button>
-      <button class="btn-secondary" onclick="closeModal('publish-modal')">إلغاء</button>
+      <button class="btn-primary" id="publish-btn" data-modal-action="publish">نشر الآن</button>
+      <button class="btn-secondary" data-modal-action="close" data-modal-target="publish-modal">إلغاء</button>
     </div>
   </div>
 </div>
 
 <!-- Settings Modal -->
 <div class="modal-overlay" id="settings-modal">
-  <div class="modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="إعدادات المحرر">
     <h3>إعدادات المحرر</h3>
     <div id="token-status-display"></div>
     <label>GitHub Personal Access Token</label>
@@ -521,8 +521,8 @@ main#main-content { padding: 0 !important; }
       <br>التوكن يُحفظ في متصفحك فقط ولا يُرسل لأي طرف آخر.
     </div>
     <div class="modal-actions">
-      <button class="btn-primary" onclick="saveSettings()">حفظ</button>
-      <button class="btn-secondary" onclick="closeModal('settings-modal')">إغلاق</button>
+      <button class="btn-primary" data-modal-action="save-settings">حفظ</button>
+      <button class="btn-secondary" data-modal-action="close" data-modal-target="settings-modal">إغلاق</button>
     </div>
   </div>
 </div>
@@ -530,8 +530,9 @@ main#main-content { padding: 0 !important; }
 <!-- Toast -->
 <div class="editor-toast" id="editor-toast"></div>
 
-<!-- Markdown parser -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.7/marked.min.js"></script>
+<!-- Markdown parser + sanitizer -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.4/purify.min.js" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.7/marked.min.js" crossorigin="anonymous"></script>
 
 <script>
 (function() {
@@ -563,7 +564,7 @@ main#main-content { padding: 0 !important; }
       preview.innerHTML = '<div class="preview-empty">المعاينة ستظهر هنا</div>';
       return;
     }
-    preview.innerHTML = marked.parse(val);
+    preview.innerHTML = DOMPurify.sanitize(marked.parse(val));
   }
 
   input.addEventListener('input', function() {
@@ -605,6 +606,14 @@ main#main-content { padding: 0 !important; }
     toast.textContent = msg;
     toast.classList.add('visible');
     setTimeout(function() { toast.classList.remove('visible'); }, 2000);
+  }
+
+  // === URL validation ===
+  function isValidUrl(str) {
+    try {
+      var u = new URL(str);
+      return u.protocol === 'https:' || u.protocol === 'http:';
+    } catch(e) { return false; }
   }
 
   // === Toolbar helpers ===
@@ -673,16 +682,17 @@ main#main-content { padding: 0 !important; }
       case 'code': wrapSelection('`', '`'); break;
       case 'link':
         var url = prompt('أدخل الرابط:');
-        if (url) {
+        if (url && isValidUrl(url)) {
           var s = input.selectionStart, e = input.selectionEnd;
           var sel = input.value.substring(s, e) || 'رابط';
           input.value = input.value.substring(0, s) + '[' + sel + '](' + url + ')' + input.value.substring(e);
           input.focus();
-        }
+        } else if (url) { showToast('رابط غير صالح'); }
         break;
       case 'image':
         var imgUrl = prompt('أدخل رابط الصورة:');
-        if (imgUrl) insertAtCursor('![صورة](' + imgUrl + ')');
+        if (imgUrl && isValidUrl(imgUrl)) insertAtCursor('![صورة](' + imgUrl + ')');
+        else if (imgUrl) { showToast('رابط غير صالح'); }
         break;
       case 'ul': prefixLines('- '); break;
       case 'ol': prefixLines('1. '); break;
@@ -801,7 +811,7 @@ main#main-content { padding: 0 !important; }
 
   // === Toggle publish/export button based on token ===
   function updatePublishVisibility() {
-    var token = localStorage.getItem(TOKEN_KEY);
+    var token = sessionStorage.getItem(TOKEN_KEY);
     var publishBtn = document.getElementById('btn-publish-action');
     var exportBtn = document.getElementById('btn-export-post');
     if (token) {
@@ -871,10 +881,10 @@ main#main-content { padding: 0 !important; }
 
   // === Settings ===
   window.updateTokenStatus = function() {
-    var token = localStorage.getItem(TOKEN_KEY);
+    var token = sessionStorage.getItem(TOKEN_KEY);
     var container = document.getElementById('token-status-display');
     if (token) {
-      container.innerHTML = '<div class="token-status connected"><span class="token-dot"></span>متصل — التوكن محفوظ (' + token.substring(0, 7) + '...)<button class="token-remove" onclick="removeToken()">حذف</button></div>';
+      container.innerHTML = '<div class="token-status connected"><span class="token-dot"></span>متصل — التوكن محفوظ<button class="token-remove" data-modal-action="remove-token">حذف</button></div>';
       document.getElementById('settings-token').value = '';
       document.getElementById('settings-token').placeholder = 'التوكن محفوظ — أدخل توكن جديد للاستبدال';
     } else {
@@ -884,7 +894,7 @@ main#main-content { padding: 0 !important; }
   };
 
   window.removeToken = function() {
-    localStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
     updateTokenStatus();
     updatePublishVisibility();
     showToast('تم حذف التوكن');
@@ -894,7 +904,7 @@ main#main-content { padding: 0 !important; }
     var tokenInput = document.getElementById('settings-token');
     var token = tokenInput.value.trim();
     if (token) {
-      localStorage.setItem(TOKEN_KEY, token);
+      sessionStorage.setItem(TOKEN_KEY, token);
       tokenInput.value = '';
       showToast('تم حفظ التوكن');
     }
@@ -914,7 +924,7 @@ main#main-content { padding: 0 !important; }
   }
 
   window.openPublishModal = function() {
-    var token = localStorage.getItem(TOKEN_KEY);
+    var token = sessionStorage.getItem(TOKEN_KEY);
     var warning = document.getElementById('publish-token-warning');
     var btn = document.getElementById('publish-btn');
     if (!token) {
@@ -929,7 +939,7 @@ main#main-content { padding: 0 !important; }
   };
 
   window.publishPost = function() {
-    var token = localStorage.getItem(TOKEN_KEY);
+    var token = sessionStorage.getItem(TOKEN_KEY);
     if (!token) { showToast('يجب إعداد GitHub Token أولاً'); return; }
 
     var title = document.getElementById('publish-title').value.trim();
@@ -976,7 +986,7 @@ main#main-content { padding: 0 !important; }
       },
       body: JSON.stringify({
         message: 'نشر مقالة: ' + title,
-        content: btoa(unescape(encodeURIComponent(fullContent)))
+        content: btoa(new TextEncoder().encode(fullContent).reduce(function(s, b) { return s + String.fromCharCode(b); }, ''))
       })
     })
     .then(function(res) {
@@ -1012,6 +1022,20 @@ main#main-content { padding: 0 !important; }
     previewPane.classList.toggle('hidden', tab !== 'preview');
     if (tab === 'preview') renderPreview();
   };
+
+  // === Event delegation for buttons ===
+  document.addEventListener('click', function(e) {
+    var tab = e.target.closest('[data-tab]');
+    if (tab) { switchTab(tab.dataset.tab); return; }
+    var action = e.target.closest('[data-modal-action]');
+    if (!action) return;
+    switch (action.dataset.modalAction) {
+      case 'publish': publishPost(); break;
+      case 'save-settings': saveSettings(); break;
+      case 'remove-token': removeToken(); break;
+      case 'close': closeModal(action.dataset.modalTarget); break;
+    }
+  });
 
   // === Init ===
   loadContent();
