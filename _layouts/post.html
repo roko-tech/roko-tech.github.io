@@ -95,6 +95,8 @@ layout: default
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   "headline": {{ page.title | jsonify }},
+  "description": {{ page.description | default: page.excerpt | strip_html | truncate: 160 | jsonify }},
+  "image": "{{ page.image | default: '/assets/og-default.png' | absolute_url }}",
   "author": { "@type": "Person", "name": {{ site.author | jsonify }} },
   "datePublished": "{{ page.date | date_to_xmlschema }}",
   {% if page.last_modified_at %}"dateModified": "{{ page.last_modified_at | date_to_xmlschema }}",{% endif %}
