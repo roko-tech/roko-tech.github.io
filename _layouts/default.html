@@ -112,12 +112,44 @@ document.querySelectorAll('article img:not(.icono)').forEach(function(img){
 });
 document.addEventListener('keydown',function(e){if(e.key==='Escape')lb.classList.remove('active')});
 
-// Floating back-to-top
+// Floating back-to-top + scroll-linked header
 var btt=document.getElementById('back-to-top-float');
+var siteHeader=document.querySelector('body > header');
 btt.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});
 window.addEventListener('scroll',function(){
   btt.classList.toggle('visible',window.scrollY>400);
+  if(siteHeader)siteHeader.classList.toggle('scrolled',window.scrollY>50);
 },{passive:true});
+
+// Heading & image fade-in on scroll
+if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+  var fadeEls=document.querySelectorAll('article h2, article h3, article img:not(.icono)');
+  if(fadeEls.length>0){
+    fadeEls.forEach(function(el){el.classList.add('fade-on-scroll')});
+    var fadeObs=new IntersectionObserver(function(entries){
+      entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('visible');fadeObs.unobserve(e.target)}})
+    },{threshold:0.15});
+    fadeEls.forEach(function(el){fadeObs.observe(el)});
+  }
+}
+
+// Dynamic reading progress (minutes remaining)
+var readingTime=document.querySelector('.reading-time');
+if(readingTime){
+  var totalMin=parseInt(readingTime.textContent)||1;
+  var articleEl=document.querySelector('article');
+  if(articleEl){
+    window.addEventListener('scroll',function(){
+      var rect=articleEl.getBoundingClientRect();
+      var total=articleEl.scrollHeight;
+      var scrolled=Math.max(0,Math.min(total,-rect.top));
+      var progress=scrolled/total;
+      var remaining=Math.max(1,Math.ceil(totalMin*(1-progress)));
+      if(progress>=0.95)readingTime.textContent='تمت القراءة';
+      else readingTime.textContent=remaining+' دقائق متبقية';
+    },{passive:true});
+  }
+}
 </script>
 </body>
 </html>

@@ -18,6 +18,11 @@ body > header
   backdrop-filter: blur(12px)
   -webkit-backdrop-filter: blur(12px)
   background: rgba($bg-base, 0.85)
+  transition: border-color 0.3s, background 0.3s, box-shadow 0.3s
+  &.scrolled
+    background: rgba($bg-base, 0.95)
+    border-bottom-color: $border-default
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.2)
 
 body > footer
   display: flex

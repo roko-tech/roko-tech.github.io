@@ -9,6 +9,13 @@
   <h1>{{ include.post.title }}</h1>
   <div class="post-meta">
     <time datetime="{{ include.post.date | date_to_xmlschema }}">{{ include.post.date | date: date_format }}</time>
+    {% if include.post.last_modified_at %}
+      {% assign mod_date = include.post.last_modified_at | date: date_format %}
+      {% assign pub_date = include.post.date | date: date_format %}
+      {% if mod_date != pub_date %}
+        <span class="last-updated">تم التحديث: {{ include.post.last_modified_at | date: date_format }}</span>
+      {% endif %}
+    {% endif %}
   </div>
 </header>
 {% endif %}
