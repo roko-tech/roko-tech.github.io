@@ -44,6 +44,12 @@ article header h1
   font-size: 2em
   margin: 0 0 var(--space-1)
 
+// Header actions (theme toggle + hamburger)
+.header-actions
+  display: flex
+  align-items: center
+  gap: var(--space-1)
+
 // Theme toggle
 .theme-toggle
   background: none
@@ -126,14 +132,17 @@ nav a
     display: flex
     align-items: center
     justify-content: center
-  nav
+  nav#main-nav
     display: none
     width: 100%
     flex-direction: column
     gap: 0
+    order: 10
     padding-top: var(--space-2)
+    border-top: 1px solid var(--border-subtle)
+    margin-top: var(--space-2)
     &.open
       display: flex
-  nav a
+  nav#main-nav a
     padding: var(--space-3) var(--space-3)
     border-radius: var(--radius-sm)
