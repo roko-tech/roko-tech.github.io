@@ -34,6 +34,21 @@
   {% include menu.html menu=pages %}
 </header>
 
+{% if page.url == "/" %}
+<div class="blob-bg" aria-hidden="true">
+  <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
+    <defs>
+      <filter id="blob-blur"><feGaussianBlur stdDeviation="60"/></filter>
+    </defs>
+    <g filter="url(#blob-blur)">
+      <circle class="blob blob-1" cx="250" cy="200" r="120" fill="rgba(99,102,241,0.07)"/>
+      <circle class="blob blob-2" cx="550" cy="350" r="100" fill="rgba(129,140,248,0.05)"/>
+      <circle class="blob blob-3" cx="400" cy="150" r="80" fill="rgba(99,102,241,0.04)"/>
+    </g>
+  </svg>
+</div>
+{% endif %}
+
 <main id="main-content">
 {{ content }}
 </main>
@@ -81,8 +96,15 @@
 var menuToggle=document.getElementById('menu-toggle'),mainNav=document.getElementById('main-nav');
 if(menuToggle&&mainNav){menuToggle.addEventListener('click',function(){var open=mainNav.classList.toggle('open');menuToggle.setAttribute('aria-expanded',open)})}
 
-// Lazy load images
-document.querySelectorAll('article img:not([loading])').forEach(function(img){img.loading='lazy';img.decoding='async'})
+// Lazy load images with shimmer
+document.querySelectorAll('article img:not([loading]):not(.icono)').forEach(function(img){
+  img.loading='lazy';img.decoding='async';
+  if(!img.complete){
+    img.classList.add('img-loading');
+    img.addEventListener('load',function(){img.classList.remove('img-loading')},{once:true});
+    img.addEventListener('error',function(){img.classList.remove('img-loading')},{once:true});
+  }
+})
 
 // Copy button for code blocks
 document.querySelectorAll('pre').forEach(function(pre){
@@ -102,14 +124,22 @@ document.querySelectorAll('pre').forEach(function(pre){
   pre.appendChild(btn);
 })
 
-// Cursor glow on post cards
+// Cursor glow + 3D tilt on post cards
+var reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 document.querySelectorAll('.post-card').forEach(function(card){
   var glow=card.querySelector('.post-card-glow');
-  if(!glow)return;
   card.addEventListener('mousemove',function(e){
     var r=card.getBoundingClientRect();
-    glow.style.left=(e.clientX-r.left)+'px';
-    glow.style.top=(e.clientY-r.top)+'px';
+    var x=e.clientX-r.left,y=e.clientY-r.top;
+    if(glow){glow.style.left=x+'px';glow.style.top=y+'px'}
+    if(!reducedMotion){
+      var rotY=((x/r.width)-0.5)*6;
+      var rotX=(0.5-(y/r.height))*6;
+      card.style.transform='perspective(800px) rotateX('+rotX+'deg) rotateY('+rotY+'deg) translateY(-2px)';
+    }
+  });
+  card.addEventListener('mouseleave',function(){
+    if(!reducedMotion)card.style.transform='';
   });
 });
 
