@@ -25,45 +25,14 @@ body > header
     box-shadow: 0 1px 8px rgba(0, 0, 0, 0.2)
 
 body > footer
-  border-top: 1px solid $border-subtle
-  color: $text-tertiary
-  font-size: 0.85em
-
-.footer-content
-  display: flex
-  flex-direction: column
-  gap: var(--space-4)
-
-.footer-brand
-  display: flex
-  flex-direction: column
-  gap: var(--space-1)
-
-.footer-title
-  color: $text-primary
-  font-weight: 700
-  font-size: 1.1em
-
-.footer-desc
-  color: $text-secondary
-  font-size: 0.95em
-
-.footer-links
   display: flex
   flex-wrap: wrap
-  gap: var(--space-3)
-  a
-    color: $text-secondary
-    text-decoration: none
-    transition: color 0.2s
-    &:hover
-      color: $accent
-
-.footer-copy
+  align-items: center
+  justify-content: space-between
+  gap: var(--space-2)
+  border-top: 1px solid $border-subtle
   color: $text-tertiary
   font-size: 0.85em
-  padding-top: var(--space-3)
-  border-top: 1px solid $border-subtle
 
 body > header, body > main, body > article, body > footer
   padding: var(--space-4) var(--space-5)

@@ -40,20 +40,7 @@
 
 {% if site.external %}
 <footer>
-  <div class="footer-content">
-    <div class="footer-brand">
-      <span class="footer-title">{{ site.title }}</span>
-      <span class="footer-desc">{{ site.description }}</span>
-    </div>
-    <div class="footer-links">
-      {% for item in site.external %}
-        <a href="{{ item.url | default: item.file | relative_url }}" {% if item.url contains "://" %}rel="noopener noreferrer" target="_blank"{% endif %}>{{ item.title }}</a>
-      {% endfor %}
-    </div>
-    <div class="footer-copy">
-      © {{ 'now' | date: "%Y" }} {{ site.author }} · بُني بواسطة Jekyll
-    </div>
-  </div>
+  {% include menu.html menu=site.external %}
 </footer>
 {% endif %}
 
