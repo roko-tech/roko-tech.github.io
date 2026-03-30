@@ -3,8 +3,10 @@ main {
   --color-canvas-default: #0a0a0b !important;
   --color-canvas-subtle: #111113 !important;
   --color-canvas-inset: #0a0a0b !important;
+  --color-canvas-overlay: #111113 !important;
   --color-border-default: rgba(255, 255, 255, 0.1) !important;
   --color-border-muted: rgba(255, 255, 255, 0.06) !important;
+  --color-border-overlay: rgba(255, 255, 255, 0.1) !important;
   --color-fg-default: #ededef !important;
   --color-fg-muted: #8a8a8e !important;
   --color-fg-subtle: #5a5a5e !important;
@@ -15,8 +17,48 @@ main {
   --color-btn-hover-bg: #1e1e22 !important;
   --color-btn-hover-border: rgba(255, 255, 255, 0.16) !important;
   --color-neutral-muted: rgba(255, 255, 255, 0.06) !important;
+  --color-neutral-subtle: rgba(255, 255, 255, 0.03) !important;
+  --color-shadow-medium: 0 3px 6px rgba(0, 0, 0, 0.4) !important;
+  --color-shadow-large: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+  color-scheme: dark;
 }
 
+/* Reactions popup */
+.gsc-emoji-button {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+.gsc-emoji-button:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+}
+
+.gsc-direct-reaction-button {
+  background: #111113 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  color: #8a8a8e !important;
+}
+
+.gsc-direct-reaction-button:hover {
+  background: #1e1e22 !important;
+}
+
+.gsc-direct-reaction-button.has-reacted {
+  background: rgba(99, 102, 241, 0.1) !important;
+  border-color: rgba(99, 102, 241, 0.3) !important;
+  color: #818cf8 !important;
+}
+
+/* Reactions popup panel */
+.popup-container,
+.Popover-message,
+[class*="Popover"] {
+  background: #111113 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Comment box */
 .gsc-comment-box {
   border-color: rgba(255, 255, 255, 0.1) !important;
   background: #111113 !important;
@@ -38,10 +80,12 @@ main {
   border-top-color: rgba(255, 255, 255, 0.06) !important;
 }
 
+/* Header */
 .gsc-header .gsc-left-header {
   color: #8a8a8e !important;
 }
 
+/* Reaction buttons in header */
 .gsc-reactions-button {
   background: #111113 !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
@@ -52,12 +96,41 @@ main {
   background: #1e1e22 !important;
 }
 
+/* Reply box */
 .gsc-reply-box {
   background: #111113 !important;
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
 
+/* Login button */
 .gsc-social-login-button {
   background: #111113 !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Comment area */
+.gsc-comment {
+  background: transparent !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Timeline line */
+.gsc-timeline {
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Override any remaining white backgrounds */
+.color-bg-default,
+.color-bg-subtle,
+.color-bg-inset {
+  background: #0a0a0b !important;
+}
+
+.color-bg-overlay {
+  background: #111113 !important;
+}
+
+.color-border-default,
+.color-border-muted {
   border-color: rgba(255, 255, 255, 0.1) !important;
 }
