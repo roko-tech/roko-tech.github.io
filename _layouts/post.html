@@ -11,11 +11,21 @@ layout: default
     <span class="reading-time">{{ minutes }} دقائق للقراءة</span>
   </div>
 
-  {% if words > 800 %}
+  {% assign has_headings = false %}
+  {% assign headers = content | split: '<h' %}
+  {% for header in headers %}
+    {% if forloop.first %}{% continue %}{% endif %}
+    {% assign level_char = header | slice: 0, 1 %}
+    {% if level_char == '2' or level_char == '3' %}
+      {% assign has_headings = true %}
+      {% break %}
+    {% endif %}
+  {% endfor %}
+
+  {% if words > 800 and has_headings %}
   <details class="toc">
     <summary>محتويات المقالة</summary>
     <ul>
-    {% assign headers = content | split: '<h' %}
     {% for header in headers %}
       {% if forloop.first %}{% continue %}{% endif %}
       {% assign level_char = header | slice: 0, 1 %}
