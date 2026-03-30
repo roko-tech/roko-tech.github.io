@@ -1,6 +1,7 @@
 {%- assign posts = paginator.posts | default: site.posts -%}
 {% for post in posts %}
   <article class="post-card">
+    <div class="post-card-glow"></div>
     <div class="post-card-inner">
       {% include meta.html post=post preview=true %}
       <p class="post-card-excerpt">{{ post.excerpt | strip_html | truncatewords: 40 }}</p>

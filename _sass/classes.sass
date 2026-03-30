@@ -9,11 +9,46 @@
   padding: var(--space-6)
   margin-bottom: var(--space-5)
   transition: border-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease, background 0.3s ease
+  overflow: hidden
+  // Staggered entrance
+  opacity: 0
+  transform: translateY(16px)
+  animation: card-enter 0.5s ease forwards
+  @for $i from 1 through 10
+    &:nth-child(#{$i})
+      animation-delay: #{($i - 1) * 0.08}s
   &:hover
     border-color: rgba(99, 102, 241, 0.25)
     transform: translateY(-2px)
     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1), 0 8px 24px rgba(0, 0, 0, 0.25)
     background: rgba(17, 17, 19, 0.75)
+
+// Cursor glow effect
+.post-card-glow
+  position: absolute
+  width: 300px
+  height: 300px
+  border-radius: 50%
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%)
+  pointer-events: none
+  transform: translate(-50%, -50%)
+  opacity: 0
+  transition: opacity 0.3s
+  z-index: 0
+
+.post-card:hover .post-card-glow
+  opacity: 1
+
+@keyframes card-enter
+  to
+    opacity: 1
+    transform: translateY(0)
+
+@media (prefers-reduced-motion: reduce)
+  .post-card
+    opacity: 1
+    transform: none
+    animation: none
 
 .post-card-inner
   position: relative

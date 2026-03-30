@@ -40,7 +40,20 @@
 
 {% if site.external %}
 <footer>
-  {% include menu.html menu=site.external %}
+  <div class="footer-content">
+    <div class="footer-brand">
+      <span class="footer-title">{{ site.title }}</span>
+      <span class="footer-desc">{{ site.description }}</span>
+    </div>
+    <div class="footer-links">
+      {% for item in site.external %}
+        <a href="{{ item.url | default: item.file | relative_url }}" {% if item.url contains "://" %}rel="noopener noreferrer" target="_blank"{% endif %}>{{ item.title }}</a>
+      {% endfor %}
+    </div>
+    <div class="footer-copy">
+      © {{ 'now' | date: "%Y" }} {{ site.author }} · بُني بواسطة Jekyll
+    </div>
+  </div>
 </footer>
 {% endif %}
 
@@ -51,7 +64,11 @@
 
 <!-- Floating back-to-top -->
 <button class="back-to-top-float" id="back-to-top-float" aria-label="العودة للأعلى">
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
+  <svg class="btt-ring" width="44" height="44" viewBox="0 0 44 44">
+    <circle cx="22" cy="22" r="19" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2.5"/>
+    <circle class="btt-progress" cx="22" cy="22" r="19" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="119.38" stroke-dashoffset="119.38" transform="rotate(-90 22 22)"/>
+  </svg>
+  <svg class="btt-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
 </button>
 
 {% if page.url == "/" %}
@@ -98,6 +115,17 @@ document.querySelectorAll('pre').forEach(function(pre){
   pre.appendChild(btn);
 })
 
+// Cursor glow on post cards
+document.querySelectorAll('.post-card').forEach(function(card){
+  var glow=card.querySelector('.post-card-glow');
+  if(!glow)return;
+  card.addEventListener('mousemove',function(e){
+    var r=card.getBoundingClientRect();
+    glow.style.left=(e.clientX-r.left)+'px';
+    glow.style.top=(e.clientY-r.top)+'px';
+  });
+});
+
 // Logo fallback
 var logo=document.getElementById('site-logo');
 if(logo){logo.addEventListener('error',function(){this.src='/assets/icono.jpg'},{once:true})}
@@ -112,13 +140,21 @@ document.querySelectorAll('article img:not(.icono)').forEach(function(img){
 });
 document.addEventListener('keydown',function(e){if(e.key==='Escape')lb.classList.remove('active')});
 
-// Floating back-to-top + scroll-linked header
+// Floating back-to-top + scroll-linked header + progress ring
 var btt=document.getElementById('back-to-top-float');
 var siteHeader=document.querySelector('body > header');
+var bttProgress=document.querySelector('.btt-progress');
+var ringLen=119.38;
 btt.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});
 window.addEventListener('scroll',function(){
   btt.classList.toggle('visible',window.scrollY>400);
   if(siteHeader)siteHeader.classList.toggle('scrolled',window.scrollY>50);
+  if(bttProgress){
+    var scrollTop=window.scrollY;
+    var docHeight=document.documentElement.scrollHeight-window.innerHeight;
+    var progress=docHeight>0?scrollTop/docHeight:0;
+    bttProgress.style.strokeDashoffset=ringLen-(ringLen*progress);
+  }
 },{passive:true});
 
 // Heading & image fade-in on scroll

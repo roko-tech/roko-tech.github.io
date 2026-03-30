@@ -307,7 +307,7 @@ article img:not(.icono)
   &:hover
     opacity: 0.85
 
-// Floating back-to-top
+// Floating back-to-top with progress ring
 .back-to-top-float
   position: fixed
   bottom: var(--space-6)
@@ -315,7 +315,7 @@ article img:not(.icono)
   width: 44px
   height: 44px
   background: $bg-surface
-  border: 1px solid $border-subtle
+  border: none
   border-radius: 50%
   color: $text-secondary
   cursor: pointer
@@ -324,16 +324,27 @@ article img:not(.icono)
   justify-content: center
   opacity: 0
   visibility: hidden
-  transition: opacity 0.3s, visibility 0.3s, background 0.2s, color 0.2s, transform 0.2s
+  transition: opacity 0.3s, visibility 0.3s, color 0.2s, transform 0.2s
   z-index: 50
+  padding: 0
   &.visible
     opacity: 1
     visibility: visible
   &:hover
-    background: $accent
-    color: white
-    border-color: $accent
+    color: $accent
     transform: translateY(-2px)
+
+.btt-ring
+  position: absolute
+  inset: 0
+
+.btt-progress
+  color: $accent
+  transition: stroke-dashoffset 0.1s linear
+
+.btt-arrow
+  position: relative
+  z-index: 1
 
 // Social sharing
 .share-buttons
