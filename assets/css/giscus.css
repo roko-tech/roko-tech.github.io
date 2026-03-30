@@ -119,10 +119,25 @@ main {
   border-color: rgba(255, 255, 255, 0.06) !important;
 }
 
+/* Reactions container */
+.gsc-reactions {
+  background: #0a0a0b !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.gsc-reactions-count {
+  color: #8a8a8e !important;
+}
+
+.gsc-main .gsc-reactions {
+  background: #0a0a0b !important;
+}
+
 /* Override any remaining white backgrounds */
 .color-bg-default,
 .color-bg-subtle,
-.color-bg-inset {
+.color-bg-inset,
+[data-color-mode] {
   background: #0a0a0b !important;
 }
 
@@ -133,4 +148,21 @@ main {
 .color-border-default,
 .color-border-muted {
   border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Nuclear override: catch any white/light backgrounds */
+.gsc-main > *,
+.gsc-main > * > * {
+  background-color: transparent !important;
+}
+
+.gsc-main {
+  background: #0a0a0b !important;
+}
+
+/* Reactions section specifically */
+.gsc-main > div:first-child {
+  background: #0a0a0b !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 10px !important;
 }
