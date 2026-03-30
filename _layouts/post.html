@@ -74,10 +74,30 @@ layout: default
       data-emit-metadata="0"
       data-input-position="top"
       data-theme="https://roko-tech.github.io/assets/css/giscus.css"
+      id="giscus-script"
       data-lang="ar"
       data-loading="lazy"
       crossorigin="anonymous"
       async>
+    </script>
+    <script>
+    // Set initial Giscus theme based on current site theme
+    (function(){
+      var t = document.documentElement.getAttribute('data-theme');
+      if (t === 'light') {
+        var s = document.getElementById('giscus-script');
+        if (s) s.setAttribute('data-theme', 'https://roko-tech.github.io/assets/css/giscus-light.css');
+      }
+    })();
+    // Switch Giscus theme when site theme changes
+    new MutationObserver(function() {
+      var theme = document.documentElement.getAttribute('data-theme');
+      var giscusFrame = document.querySelector('iframe.giscus-frame');
+      if (giscusFrame) {
+        var src = theme === 'light' ? 'https://roko-tech.github.io/assets/css/giscus-light.css' : 'https://roko-tech.github.io/assets/css/giscus.css';
+        giscusFrame.contentWindow.postMessage({ giscus: { setConfig: { theme: src } } }, 'https://giscus.app');
+      }
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     </script>
     <noscript>يرجى تفعيل JavaScript لعرض التعليقات.</noscript>
   {% endif %}

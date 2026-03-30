@@ -1,0 +1,131 @@
+/*! Custom Giscus light theme matching site light mode */
+main {
+  --color-canvas-default: #f8f9fa !important;
+  --color-canvas-subtle: #ffffff !important;
+  --color-canvas-inset: #f8f9fa !important;
+  --color-canvas-overlay: #ffffff !important;
+  --color-border-default: rgba(0, 0, 0, 0.12) !important;
+  --color-border-muted: rgba(0, 0, 0, 0.08) !important;
+  --color-border-overlay: rgba(0, 0, 0, 0.12) !important;
+  --color-fg-default: #1a1a2e !important;
+  --color-fg-muted: #555566 !important;
+  --color-fg-subtle: #888899 !important;
+  --color-accent-fg: #4f46e5 !important;
+  --color-accent-emphasis: #4f46e5 !important;
+  --color-btn-bg: #ffffff !important;
+  --color-btn-border: rgba(0, 0, 0, 0.12) !important;
+  --color-btn-hover-bg: #f0f1f3 !important;
+  --color-btn-hover-border: rgba(0, 0, 0, 0.2) !important;
+  --color-neutral-muted: rgba(0, 0, 0, 0.06) !important;
+  --color-neutral-subtle: rgba(0, 0, 0, 0.03) !important;
+  --color-shadow-medium: 0 3px 6px rgba(0, 0, 0, 0.1) !important;
+  --color-shadow-large: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+  color-scheme: light;
+}
+
+.gsc-emoji-button {
+  background: transparent !important;
+  border-color: transparent !important;
+}
+
+.gsc-emoji-button:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+
+.gsc-direct-reaction-button {
+  background: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: #555566 !important;
+}
+
+.gsc-direct-reaction-button:hover {
+  background: #f0f1f3 !important;
+}
+
+.gsc-direct-reaction-button.has-reacted {
+  background: rgba(79, 70, 229, 0.06) !important;
+  border-color: rgba(79, 70, 229, 0.3) !important;
+  color: #4f46e5 !important;
+}
+
+.popup-container,
+.Popover-message,
+[class*="Popover"] {
+  background: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+}
+
+.gsc-comment-box {
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  background: #ffffff !important;
+}
+
+.gsc-comment-box-textarea {
+  background: #f8f9fa !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: #1a1a2e !important;
+}
+
+.gsc-comment-box-tabs {
+  background: #ffffff !important;
+  border-bottom-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.gsc-comment-box-bottom {
+  background: #ffffff !important;
+  border-top-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.gsc-header .gsc-left-header {
+  color: #555566 !important;
+}
+
+.gsc-reactions-button {
+  background: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  color: #555566 !important;
+}
+
+.gsc-reactions-button:hover {
+  background: #f0f1f3 !important;
+}
+
+.gsc-reply-box {
+  background: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+.gsc-social-login-button {
+  background: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+.gsc-comment {
+  background: transparent !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.gsc-timeline {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.gsc-reactions {
+  background: #f8f9fa !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+.gsc-main > *,
+.gsc-main > * > * {
+  background-color: transparent !important;
+}
+
+.gsc-main {
+  background: #f8f9fa !important;
+}
+
+.gsc-main > div:first-child {
+  background: #f8f9fa !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 10px !important;
+}
