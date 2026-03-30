@@ -1,10 +1,10 @@
 // Post cards
 .post-card
   position: relative
-  background: rgba(17, 17, 19, 0.6)
+  background: var(--card-bg)
   backdrop-filter: blur(12px)
   -webkit-backdrop-filter: blur(12px)
-  border: 1px solid $border-subtle
+  border: 1px solid var(--border-subtle)
   border-radius: var(--radius-md)
   padding: var(--space-6)
   margin-bottom: var(--space-5)
@@ -20,9 +20,9 @@
     &:nth-child(#{$i})
       animation-delay: #{($i - 1) * 0.08}s
   &:hover
-    border-color: rgba(99, 102, 241, 0.25)
-    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1), 0 8px 24px rgba(0, 0, 0, 0.25)
-    background: rgba(17, 17, 19, 0.75)
+    border-color: var(--card-border-hover)
+    box-shadow: var(--shadow-card)
+    background: var(--card-bg-hover)
 
 // Cursor glow effect
 .post-card-glow
@@ -30,7 +30,7 @@
   width: 300px
   height: 300px
   border-radius: 50%
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, transparent 70%)
+  background: radial-gradient(circle, var(--card-glow) 0%, transparent 70%)
   pointer-events: none
   transform: translate(-50%, -50%)
   opacity: 0
@@ -70,7 +70,7 @@
     position: absolute
     inset: -2px
     border-radius: calc(var(--radius-md) + 2px)
-    background: linear-gradient(135deg, $accent, $accent-hover, $accent)
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover), var(--accent))
     background-size: 200% 200%
     animation: gradient-shift 2s ease infinite
     z-index: -1
@@ -88,19 +88,19 @@
   font-size: 1.35em
   margin: 0 0 var(--space-1)
   a
-    color: $text-primary
+    color: var(--text-primary)
     text-decoration: none
     transition: color 0.2s
 
 .post-card:hover .post-card-title a
-  color: $accent-hover
+  color: var(--accent-hover)
 
 .post-card-date
-  color: $text-secondary
+  color: var(--text-secondary)
   font-size: 0.85em
 
 .post-card-excerpt
-  color: $text-secondary
+  color: var(--text-secondary)
   font-size: 0.95em
   line-height: 1.7
   margin: var(--space-3) 0
@@ -113,31 +113,31 @@
   margin-top: var(--space-4)
 
 .post-card-read
-  color: $accent
+  color: var(--accent)
   font-size: 0.9em
   font-weight: 600
   transition: color 0.2s, transform 0.2s
   display: inline-block
 
 .post-card:hover .post-card-read
-  color: $accent-hover
+  color: var(--accent-hover)
   transform: translateX(-4px)
 
 // Tag pills
 .post-tag, .archive-tag
   display: inline-block
-  background: rgba(99, 102, 241, 0.08)
-  color: $accent
+  background: var(--tag-bg)
+  color: var(--accent)
   font-size: 0.8em
   padding: 0.3em 0.75em
   border-radius: 9999px
-  border: 1px solid rgba(99, 102, 241, 0.15)
+  border: 1px solid var(--tag-border)
   text-decoration: none
   transition: background 0.2s, border-color 0.2s
 
 .archive-tag:hover
-  background: rgba(99, 102, 241, 0.15)
-  border-color: rgba(99, 102, 241, 0.3)
+  background: var(--tag-bg-hover)
+  border-color: var(--tag-border-hover)
 
 // Post tags (bottom of post)
 .post-tags
@@ -148,17 +148,17 @@
 
 .post-tags a
   display: inline-block
-  background: rgba(99, 102, 241, 0.08)
-  color: $accent
+  background: var(--tag-bg)
+  color: var(--accent)
   font-size: 0.8em
   padding: 0.3em 0.75em
   border-radius: 9999px
-  border: 1px solid rgba(99, 102, 241, 0.15)
+  border: 1px solid var(--tag-border)
   text-decoration: none
   transition: background 0.2s, border-color 0.2s
   &:hover
-    background: rgba(99, 102, 241, 0.15)
-    border-color: rgba(99, 102, 241, 0.3)
+    background: var(--tag-bg-hover)
+    border-color: var(--tag-border-hover)
 
 // Post header (full post page)
 .post-header
@@ -167,7 +167,7 @@
     font-size: 2.2em
     line-height: 1.2
     margin: 0 0 var(--space-3)
-    background: linear-gradient(135deg, $text-primary 0%, $accent-hover 100%)
+    background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent-hover) 100%)
     -webkit-background-clip: text
     background-clip: text
     -webkit-text-fill-color: transparent
@@ -177,19 +177,19 @@
   flex-wrap: wrap
   align-items: center
   gap: var(--space-3)
-  color: $text-secondary
+  color: var(--text-secondary)
   font-size: 0.9em
 
 .last-updated
   display: inline-flex
   align-items: center
   gap: var(--space-1)
-  background: rgba(99, 102, 241, 0.08)
-  color: $accent
+  background: var(--tag-bg)
+  color: var(--accent)
   font-size: 0.85em
   padding: 0.2em 0.6em
   border-radius: 9999px
-  border: 1px solid rgba(99, 102, 241, 0.15)
+  border: 1px solid var(--tag-border)
 
 // Pagination
 .pagination
@@ -197,12 +197,12 @@
   justify-content: space-between
   padding: var(--space-5) 0
   a
-    color: $text-secondary
+    color: var(--text-secondary)
     font-weight: 600
     text-decoration: none
     transition: color 0.2s
     &:hover
-      color: $accent
+      color: var(--accent)
 
 // Archive
 .tag-cloud
@@ -220,7 +220,7 @@
   align-items: baseline
   gap: var(--space-4)
   padding: var(--space-3) var(--space-2)
-  border-bottom: 1px solid $border-subtle
+  border-bottom: 1px solid var(--border-subtle)
   border-radius: var(--radius-sm)
   transition: background 0.15s
   &:last-child
@@ -228,17 +228,17 @@
   &:hover
     background: rgba(255, 255, 255, 0.02)
   time
-    color: $text-tertiary
+    color: var(--text-tertiary)
     font-size: 0.85em
     min-width: 8ch
     font-variant-numeric: tabular-nums
   a
-    color: $text-primary
+    color: var(--text-primary)
     text-decoration: none
     font-weight: 600
     transition: color 0.2s
     &:hover
-      color: $accent
+      color: var(--accent)
 
 // 404 page
 .error-page
@@ -248,20 +248,20 @@
 .error-code
   font-size: 6em
   font-weight: 700
-  background: linear-gradient(135deg, $accent, $accent-hover)
+  background: linear-gradient(135deg, var(--accent), var(--accent-hover))
   -webkit-background-clip: text
   -webkit-text-fill-color: transparent
   background-clip: text
   line-height: 1
 
 .error-message
-  color: $text-secondary
+  color: var(--text-secondary)
   font-size: 1.2em
   margin: var(--space-4) 0 var(--space-6)
 
 .error-link
   display: inline-block
-  background: $accent
+  background: var(--accent)
   color: white
   padding: var(--space-3) var(--space-5)
   border-radius: var(--radius-sm)
@@ -269,7 +269,7 @@
   text-decoration: none
   transition: background 0.2s, transform 0.2s
   &:hover
-    background: $accent-hover
+    background: var(--accent-hover)
     transform: translateY(-1px)
 
 // Syntax highlighting (Monokai)

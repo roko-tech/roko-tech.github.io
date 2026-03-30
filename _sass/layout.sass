@@ -14,14 +14,14 @@ body > header
   position: sticky
   top: 0
   z-index: 100
-  border-bottom: 1px solid $border-subtle
+  border-bottom: 1px solid var(--border-subtle)
   backdrop-filter: blur(12px)
   -webkit-backdrop-filter: blur(12px)
-  background: rgba($bg-base, 0.85)
+  background: var(--header-bg)
   transition: border-color 0.3s, background 0.3s, box-shadow 0.3s
   &.scrolled
-    background: rgba($bg-base, 0.95)
-    border-bottom-color: $border-default
+    background: var(--header-scrolled-bg)
+    border-bottom-color: var(--border-default)
     box-shadow: 0 1px 8px rgba(0, 0, 0, 0.2)
 
 body > footer
@@ -30,8 +30,8 @@ body > footer
   align-items: center
   justify-content: space-between
   gap: var(--space-2)
-  border-top: 1px solid $border-subtle
-  color: $text-tertiary
+  border-top: 1px solid var(--border-subtle)
+  color: var(--text-tertiary)
   font-size: 0.85em
 
 body > header, body > main, body > article, body > footer
@@ -44,18 +44,46 @@ article header h1
   font-size: 2em
   margin: 0 0 var(--space-1)
 
+// Theme toggle
+.theme-toggle
+  background: none
+  border: none
+  color: var(--text-secondary)
+  cursor: pointer
+  padding: var(--space-2)
+  border-radius: var(--radius-sm)
+  display: flex
+  align-items: center
+  justify-content: center
+  transition: color 0.2s, background 0.2s
+  &:hover
+    color: var(--text-primary)
+    background: rgba(255, 255, 255, 0.05)
+
+.theme-icon-moon
+  display: none
+
+[data-theme="light"] .theme-icon-sun
+  display: none
+
+[data-theme="light"] .theme-icon-moon
+  display: block
+
+[data-theme="light"] .theme-toggle:hover
+  background: rgba(0, 0, 0, 0.05)
+
 // Hamburger toggle
 .menu-toggle
   display: none
   background: none
   border: none
-  color: $text-secondary
+  color: var(--text-secondary)
   cursor: pointer
   padding: var(--space-2)
   border-radius: var(--radius-sm)
   transition: color 0.2s, background 0.2s
   &:hover
-    color: $text-primary
+    color: var(--text-primary)
     background: rgba(255, 255, 255, 0.05)
 
 nav
@@ -64,7 +92,7 @@ nav
   gap: var(--space-1)
 
 nav a
-  color: $text-secondary
+  color: var(--text-secondary)
   font-size: 0.9em
   font-weight: 600
   padding: var(--space-2) var(--space-3)
@@ -79,19 +107,19 @@ nav a
     inset-inline-end: var(--space-3)
     width: 0
     height: 2px
-    background: $accent
+    background: var(--accent)
     border-radius: 1px
     transition: width 0.25s ease
   &:hover
-    color: $text-primary
+    color: var(--text-primary)
     background: rgba(255, 255, 255, 0.05)
     &::after
       width: calc(100% - var(--space-3) * 2)
   &.selected
-    color: $text-primary
+    color: var(--text-primary)
     &::after
       width: calc(100% - var(--space-3) * 2)
-      background: $accent-hover
+      background: var(--accent)-hover
 
 @media (max-width: 36em)
   .menu-toggle
