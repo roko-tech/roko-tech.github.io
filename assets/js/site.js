@@ -1,34 +1,30 @@
 (function () {
   'use strict';
 
-  // === Theme toggle (+ prefers-color-scheme fallback) ===
+  // === Theme toggle (with prefers-color-scheme + respect explicit choice) ===
   var themeToggle = document.getElementById('theme-toggle');
   var themeColorMeta = document.getElementById('theme-color-meta');
-  function applyTheme(t) {
+  var THEME_KEY = 'theme';
+
+  function applyTheme(t, persist) {
     document.documentElement.setAttribute('data-theme', t);
-    localStorage.setItem('theme', t);
+    if (persist) localStorage.setItem(THEME_KEY, t);
     if (themeColorMeta) themeColorMeta.content = t === 'light' ? '#f8f9fa' : '#0a0a0b';
   }
-  function currentTheme() {
-    return document.documentElement.getAttribute('data-theme')
-      || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-  }
-  // If user hasn't chosen and system is light, apply it (dark is the document default)
-  if (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: light)').matches) {
-    applyTheme('light');
-  }
+
   if (themeToggle) {
     themeToggle.addEventListener('click', function () {
-      applyTheme(currentTheme() === 'light' ? 'dark' : 'light');
+      var current = document.documentElement.getAttribute('data-theme') || 'dark';
+      applyTheme(current === 'light' ? 'dark' : 'light', true);
     });
   }
-  // React to OS-level change while user hasn't explicitly chosen
+
+  // Follow OS-level change ONLY when user hasn't explicitly chosen
   var mql = window.matchMedia('(prefers-color-scheme: light)');
   if (mql.addEventListener) {
     mql.addEventListener('change', function (e) {
-      // Only auto-follow when the user hasn't locked a preference via click
-      // (best-effort: localStorage is our only signal, and click writes to it)
-      applyTheme(e.matches ? 'light' : 'dark');
+      if (localStorage.getItem(THEME_KEY)) return;
+      applyTheme(e.matches ? 'light' : 'dark', false);
     });
   }
 
@@ -103,13 +99,13 @@
     });
   });
 
-  // === Logo fallback ===
+  // === Logo fallback (in case local asset 404s) ===
   var logo = document.getElementById('site-logo');
   if (logo) {
     logo.addEventListener('error', function () { this.src = '/assets/icono.jpg'; }, { once: true });
   }
 
-  // === Image lightbox ===
+  // === Image lightbox with arrow-key navigation ===
   var lb = document.getElementById('lightbox');
   var lbi = document.getElementById('lightbox-img');
   if (lb && lbi) {
@@ -125,77 +121,104 @@
     var hide = function () { lb.classList.remove('active'); currentIdx = -1; };
     images.forEach(function (img, idx) { img.addEventListener('click', function () { show(idx); }); });
     lb.addEventListener('click', function (e) {
-      // Clicks on the backdrop close; clicks on <img> also close (cursor: zoom-out)
+      // Backdrop or image click closes (cursor: zoom-out visually)
       if (e.target === lb || e.target === lbi) hide();
     });
     document.addEventListener('keydown', function (e) {
       if (!lb.classList.contains('active')) return;
       if (e.key === 'Escape') hide();
+      // RTL: ArrowLeft goes forward, ArrowRight goes backward
       else if (e.key === 'ArrowLeft') show(currentIdx < images.length - 1 ? currentIdx + 1 : 0);
       else if (e.key === 'ArrowRight') show(currentIdx > 0 ? currentIdx - 1 : images.length - 1);
     });
   }
 
-  // === Back-to-top with progress ring + scrolled header ===
+  // === Arabic plural form for minutes ===
+  // 0/11+ → دقيقة, 1 → دقيقة واحدة, 2 → دقيقتين, 3-10 → دقائق
+  function arabicMinutes(n) {
+    if (n === 1) return 'دقيقة';
+    if (n === 2) return 'دقيقتين';
+    if (n >= 3 && n <= 10) return 'دقائق';
+    return 'دقيقة';
+  }
+  function formatRemaining(n) {
+    if (n === 1) return 'دقيقة واحدة متبقية';
+    if (n === 2) return 'دقيقتان متبقيتان';
+    if (n >= 3 && n <= 10) return n + ' دقائق متبقية';
+    return n + ' دقيقة متبقية';
+  }
+
+  // === Scroll-linked UI: BTT + scrolled-header + reading progress ===
   var btt = document.getElementById('back-to-top-float');
   var siteHeader = document.querySelector('body > header');
   var bttProgress = document.querySelector('.btt-progress');
   var ringLen = 119.38;
   if (btt) btt.addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
 
-  // === Dynamic reading time (remaining minutes) ===
-  // Use the real content container, not the whole <article> which includes comments/share.
   var readingTime = document.querySelector('.reading-time');
   var contentRoot = document.querySelector('article');
-  var contentEndMarker = document.querySelector('.share-buttons, .post-tags, hr');
+  // Use the element that marks the end of actual reading content (before share/giscus)
+  var contentEndMarker = document.querySelector('.share-buttons, .post-tags, article hr');
   var contentTop = 0, contentHeight = 0;
+
   function measureContent() {
     if (!contentRoot) return;
     var rect = contentRoot.getBoundingClientRect();
     contentTop = rect.top + window.scrollY;
     if (contentEndMarker) {
       var endRect = contentEndMarker.getBoundingClientRect();
-      contentHeight = (endRect.top + window.scrollY) - contentTop;
+      contentHeight = Math.max(1, (endRect.top + window.scrollY) - contentTop);
     } else {
       contentHeight = contentRoot.scrollHeight;
     }
   }
-  if (readingTime && contentRoot) {
-    var totalMin = parseInt(readingTime.textContent, 10) || 1;
-    measureContent();
-    window.addEventListener('resize', measureContent, { passive: true });
-    window.addEventListener('load', measureContent);
-    var onScroll = function () {
-      if (btt) btt.classList.toggle('visible', window.scrollY > 400);
-      if (siteHeader) siteHeader.classList.toggle('scrolled', window.scrollY > 50);
-      if (bttProgress) {
-        var docH = document.documentElement.scrollHeight - window.innerHeight;
-        var prog = docH > 0 ? window.scrollY / docH : 0;
-        bttProgress.style.strokeDashoffset = ringLen - (ringLen * prog);
-      }
-      if (contentHeight > 0) {
-        var scrolled = Math.max(0, Math.min(contentHeight, window.scrollY - contentTop));
-        var progress = scrolled / contentHeight;
+
+  // Normalize the reading-time text once so the subsequent dynamic updates are consistent
+  if (readingTime) {
+    var rawMin = parseInt(readingTime.textContent, 10);
+    if (!isNaN(rawMin)) {
+      readingTime.textContent = rawMin === 1 ? 'دقيقة واحدة للقراءة'
+        : rawMin === 2 ? 'دقيقتان للقراءة'
+        : rawMin + ' ' + arabicMinutes(rawMin) + ' للقراءة';
+    }
+  }
+
+  function onScroll() {
+    var y = window.scrollY;
+    if (btt) btt.classList.toggle('visible', y > 400);
+    if (siteHeader) siteHeader.classList.toggle('scrolled', y > 50);
+
+    var progress = 0;
+    if (contentRoot && contentHeight > 0) {
+      var scrolled = Math.max(0, Math.min(contentHeight, y - contentTop));
+      progress = scrolled / contentHeight;
+    } else {
+      var docH = document.documentElement.scrollHeight - window.innerHeight;
+      progress = docH > 0 ? y / docH : 0;
+    }
+    if (bttProgress) bttProgress.style.strokeDashoffset = ringLen - (ringLen * progress);
+
+    if (readingTime && contentRoot && contentHeight > 0) {
+      var totalMin = parseInt(readingTime.dataset.totalMin || '0', 10);
+      if (totalMin > 0) {
         if (progress >= 0.98) readingTime.textContent = 'تمت القراءة';
         else {
           var remaining = Math.max(1, Math.ceil(totalMin * (1 - progress)));
-          readingTime.textContent = remaining + ' دقائق متبقية';
+          readingTime.textContent = formatRemaining(remaining);
         }
       }
-    };
-    window.addEventListener('scroll', onScroll, { passive: true });
-  } else {
-    // Pages without a reading time still need BTT + scrolled-header
-    window.addEventListener('scroll', function () {
-      if (btt) btt.classList.toggle('visible', window.scrollY > 400);
-      if (siteHeader) siteHeader.classList.toggle('scrolled', window.scrollY > 50);
-      if (bttProgress) {
-        var docH = document.documentElement.scrollHeight - window.innerHeight;
-        var prog = docH > 0 ? window.scrollY / docH : 0;
-        bttProgress.style.strokeDashoffset = ringLen - (ringLen * prog);
-      }
-    }, { passive: true });
+    }
   }
+
+  if (readingTime) {
+    // Preserve the original total so onScroll can use it without parsing the live text
+    var origTotal = parseInt(readingTime.textContent, 10);
+    if (!isNaN(origTotal)) readingTime.dataset.totalMin = origTotal;
+    measureContent();
+    window.addEventListener('resize', measureContent, { passive: true });
+    window.addEventListener('load', measureContent);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
 
   // === Heading & image fade-in on scroll ===
   if (!reducedMotion) {

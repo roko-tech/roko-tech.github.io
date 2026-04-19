@@ -8,7 +8,7 @@ layout: default
   {% assign minutes = words | divided_by: 200 %}
   {% if minutes < 1 %}{% assign minutes = 1 %}{% endif %}
   <div class="post-meta">
-    <span class="reading-time">{{ minutes }} دقائق للقراءة</span>
+    <span class="reading-time">{{ minutes }}</span>
   </div>
 
   {% assign has_headings = false %}
@@ -113,7 +113,7 @@ layout: default
   {% endif %}
 </article>
 
-{% if site.show_related and (site.show_social != true or site.sidebar) %}
+{% if site.show_related %}
   <footer class="related">
     <div class="previous">{% if page.previous.url %}<span>المقالة السابقة</span><a href="{{ page.previous.url | relative_url }}">{{ page.previous.title }}</a>{% endif %}</div>
     <div class="next">{% if page.next.url %}<span>المقالة التالية</span><a href="{{ page.next.url | relative_url }}">{{ page.next.title }}</a>{% endif %}</div>

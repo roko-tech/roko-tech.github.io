@@ -5,7 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="color-scheme" content="dark light">
 <meta id="theme-color-meta" name="theme-color" content="#0a0a0b">
-<link rel="icon" type="image/png" href="https://unavatar.io/x/rokogan?fallback=/assets/icon3.png">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://giscus.app; connect-src 'self' https://api.github.com https://giscus.app; frame-src https://giscus.app; base-uri 'self'; form-action 'self'">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="{{ site.title }}">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" type="image/png" sizes="192x192" href="{{ '/assets/icon-192.png' | relative_url }}">
+<link rel="icon" type="image/png" sizes="512x512" href="{{ '/assets/icon-512.png' | relative_url }}">
+<link rel="apple-touch-icon" href="{{ '/assets/apple-touch-icon.png' | relative_url }}">
 <title>{% if page.title == site.title %}{{ site.title }}{% else %}{{ page.title }} | {{ site.title }}{% endif %}</title>
 <meta name="author" content="{{ page.author | default: site.author | escape }}">
 <meta name="google-site-verification" content="AUxYHZgptd884cgkIVwVQTthFgsJV49SzbcR4TwHGTQ" />
@@ -13,11 +20,18 @@
 <link rel="canonical" href="{{ page.url | absolute_url }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="{{ "/assets/css/frame.css" | relative_url }}">
-{% if site.plugins contains "jekyll-feed" %}<link rel="alternate" href="{{ site.feed.path | default: "/feed.xml" | relative_url }}" type="application/atom+xml" title="{{ site.title }}">{% endif %}
+<link rel="stylesheet" href="{{ '/assets/css/frame.css' | relative_url }}">
+{% if site.plugins contains "jekyll-feed" %}<link rel="alternate" href="{{ site.feed.path | default: '/feed.xml' | relative_url }}" type="application/atom+xml" title="{{ site.title }}">{% endif %}
 <link rel="manifest" href="{{ '/manifest.webmanifest' | relative_url }}">
-<link rel="apple-touch-icon" href="{{ '/assets/icon3.png' | relative_url }}">
-<script>var t=localStorage.getItem('theme');if(t)document.documentElement.setAttribute('data-theme',t);else if(window.matchMedia('(prefers-color-scheme: light)').matches)document.documentElement.setAttribute('data-theme','light');</script>
+<script>
+(function(){
+  var saved = localStorage.getItem('theme');
+  var pref = saved || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+  document.documentElement.setAttribute('data-theme', pref);
+  var m = document.getElementById('theme-color-meta');
+  if (m) m.content = pref === 'light' ? '#f8f9fa' : '#0a0a0b';
+})();
+</script>
 </head>
 <body>
 <a href="#main-content" class="skip-link">تخطي إلى المحتوى</a>
@@ -26,14 +40,10 @@
 <div class="reading-progress" aria-hidden="true"></div>
 {% endif %}
 
-{% if site.navigation %}
-  {% assign pages = site.navigation %}
-{% else %}
-  {% assign pages = site.pages | where_exp: "item", "item.title and item.sitemap != false" | sort: "order" %}
-{% endif %}
+{% assign pages = site.navigation %}
 
 <header>
-<a href="{{ site.url }}" aria-label="الصفحة الرئيسية"><img class="icono" id="site-logo" src="https://unavatar.io/x/rokogan" alt="{{ site.title }}"></a>
+<a href="{{ site.url }}" aria-label="الصفحة الرئيسية"><img class="icono" id="site-logo" src="{{ '/assets/logo.jpg' | relative_url }}" alt="{{ site.title }}" width="42" height="42"></a>
   <nav id="main-nav">
   {%- for item in pages -%}
     {%- assign node = site.pages | where: "name", item.file | first -%}

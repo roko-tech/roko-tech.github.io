@@ -36,6 +36,7 @@
   --header-bg: rgba(10, 10, 11, 0.85)
   --header-scrolled-bg: rgba(10, 10, 11, 0.95)
   --shadow-card: 0 4px 12px rgba(99, 102, 241, 0.1), 0 8px 24px rgba(0, 0, 0, 0.25)
+  --row-hover: rgba(255, 255, 255, 0.02)
   --blob-1: rgba(99, 102, 241, 0.07)
   --blob-2: rgba(129, 140, 248, 0.05)
   --blob-3: rgba(99, 102, 241, 0.04)
@@ -67,6 +68,7 @@
   --header-bg: rgba(248, 249, 250, 0.85)
   --header-scrolled-bg: rgba(248, 249, 250, 0.95)
   --shadow-card: 0 4px 12px rgba(79, 70, 229, 0.06), 0 8px 24px rgba(0, 0, 0, 0.08)
+  --row-hover: rgba(0, 0, 0, 0.025)
   --blob-1: rgba(79, 70, 229, 0.06)
   --blob-2: rgba(99, 102, 241, 0.04)
   --blob-3: rgba(79, 70, 229, 0.03)
@@ -257,7 +259,7 @@ tr:last-child td
   border-bottom: none
 
 tr:hover td
-  background: rgba(255, 255, 255, 0.02)
+  background: var(--row-hover)
 
 pre
   background: var(--bg-surface)

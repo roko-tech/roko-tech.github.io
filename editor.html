@@ -244,7 +244,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
   border: none;
   resize: none;
   padding: 20px;
-  font-family: ui-monospace, "Cascadia Mono", "Consolas", "Cairo", monospace;
+  font-family: "Cairo", ui-monospace, "Cascadia Mono", "Consolas", monospace;
   font-size: 0.95em;
   line-height: 1.8;
   direction: rtl;
@@ -510,8 +510,8 @@ main#main-content { padding: 0 !important; animation: none !important; }
 </style>
 
 <div class="editor-container">
-  <!-- Sidebar: drafts -->
-  <aside class="editor-sidebar collapsed" id="editor-sidebar" aria-label="المسودات">
+  <!-- Sidebar: drafts — collapsed by default on mobile via JS -->
+  <aside class="editor-sidebar" id="editor-sidebar" aria-label="المسودات">
     <div class="sidebar-header">
       <span>المسودات</span>
       <button type="button" id="btn-new-draft" title="مسودة جديدة" aria-label="مسودة جديدة">+</button>
@@ -1192,10 +1192,38 @@ main#main-content { padding: 0 !important; animation: none !important; }
     else if (ctrl && key === 's') { e.preventDefault(); handleAction('export-md'); }
     else if (ctrl && e.shiftKey && key === 'x') { e.preventDefault(); handleAction('strike'); }
     else if (e.key === 'Tab' && !e.shiftKey) {
-      e.preventDefault();
-      insertAtCursor('  ');
-      renderPreview();
-      scheduleAutoSave();
+      // Multi-line selection → indent each line. Otherwise insert 2 spaces.
+      var s = input.selectionStart, en = input.selectionEnd;
+      if (en > s && input.value.substring(s, en).indexOf('\n') !== -1) {
+        e.preventDefault();
+        prefixLines('  ');
+        renderPreview();
+        scheduleAutoSave();
+      } else {
+        e.preventDefault();
+        insertAtCursor('  ');
+        renderPreview();
+        scheduleAutoSave();
+      }
+    }
+    else if (e.key === 'Tab' && e.shiftKey) {
+      // Shift+Tab → dedent (remove leading 2 spaces from each selected line)
+      var s2 = input.selectionStart, en2 = input.selectionEnd;
+      if (en2 > s2 && input.value.substring(s2, en2).indexOf('\n') !== -1) {
+        e.preventDefault();
+        prefixLines('  ');  // prefixLines toggles off when all lines start with '  '
+        // Actually toggle may not trigger if some lines don't have it; do a straight dedent:
+        // Simpler: strip up to 2 leading spaces from each selected line
+        var text = input.value;
+        var lineStart = text.lastIndexOf('\n', s2 - 1) + 1;
+        var lineEnd = text.indexOf('\n', en2 - 1);
+        if (lineEnd === -1) lineEnd = text.length;
+        var block = text.substring(lineStart, lineEnd);
+        var dedented = block.split('\n').map(function (l) { return l.replace(/^ {1,2}/, ''); }).join('\n');
+        input.value = text.substring(0, lineStart) + dedented + text.substring(lineEnd);
+        renderPreview();
+        scheduleAutoSave();
+      }
     }
   });
 
@@ -1297,14 +1325,75 @@ main#main-content { padding: 0 !important; animation: none !important; }
   });
   input.addEventListener('drop', function (e) {
     if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
-    var file = e.dataTransfer.files[0];
-    if (file.type.startsWith('image/')) {
-      e.preventDefault();
-      // Insert at the current caret location
-      savedSelection = { start: input.selectionStart, end: input.selectionEnd };
-      handleImageFile(file, 'صورة');
+    var files = Array.prototype.slice.call(e.dataTransfer.files).filter(function (f) { return f.type.startsWith('image/'); });
+    if (!files.length) return;
+    e.preventDefault();
+    // Anchor insertion at the caret where the drop happened
+    savedSelection = { start: input.selectionStart, end: input.selectionEnd };
+
+    var token = sessionStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      showToast('يتطلب رفع الصور GitHub Token — استخدم الإعدادات', 'error');
+      openModal('settings-modal');
+      updateTokenStatus();
+      return;
     }
+    // Sequential upload so we don't race the markdown insertions
+    var idx = 0;
+    function next() {
+      if (idx >= files.length) {
+        if (files.length > 1) showToast('تم رفع ' + files.length + ' صور', 'success');
+        return;
+      }
+      var f = files[idx++];
+      if (f.size > MAX_IMAGE_BYTES) {
+        showToast(f.name + ': كبير جداً، تم التخطي', 'error');
+        next();
+        return;
+      }
+      uploadImageToGitHubAsync(f, 'صورة', token).then(next, function (err) {
+        showToast('خطأ في ' + f.name + ': ' + err.message, 'error');
+        next();
+      });
+    }
+    next();
   });
+
+  // Promise-based upload used by the multi-drop loop
+  function uploadImageToGitHubAsync(file, alt, token) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        var b64 = bytesToBase64(new Uint8Array(ev.target.result));
+        var now = new Date();
+        var dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        var ext = (file.name.match(/\.[^.]+$/) || [''])[0].toLowerCase() || '.png';
+        var base = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9-]/g, '-').replace(/-+/g, '-').slice(0, 40) || 'image';
+        var path = 'assets/uploads/' + dateStr + '-' + base + '-' + Math.random().toString(36).slice(2, 7) + ext;
+
+        fetch('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(path), {
+          method: 'PUT',
+          headers: {
+            'Authorization': 'Bearer ' + token,
+            'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github+json',
+            'X-GitHub-Api-Version': '2022-11-28'
+          },
+          body: JSON.stringify({ message: 'رفع صورة: ' + path, content: b64 })
+        }).then(function (res) {
+          if (!res.ok) return res.json().then(function (err) { throw new Error(err.message || 'فشل رفع الصورة'); });
+          return res.json();
+        }).then(function () {
+          replaceSavedSelection('![' + alt + '](/' + path + ')\n');
+          renderPreview();
+          scheduleAutoSave();
+          resolve();
+        }).catch(reject);
+      };
+      reader.onerror = function () { reject(new Error('تعذّر قراءة الملف')); };
+      reader.readAsArrayBuffer(file);
+    });
+  }
 
   // === Export ===
   function exportMarkdown() {
@@ -1360,6 +1449,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
     if (meta.description) fm += 'description: "' + meta.description.replace(/"/g, '\\"') + '"\n';
     if (meta.excerpt) fm += 'excerpt: "' + meta.excerpt.replace(/"/g, '\\"') + '"\n';
     if (meta.tags && meta.tags.length) fm += 'tags: [' + meta.tags.map(function (t) { return '"' + t + '"'; }).join(', ') + ']\n';
+    if (meta.permalink) fm += 'permalink: "' + meta.permalink + '"\n';
     fm += '---\n\n';
     return fm;
   }
@@ -1505,8 +1595,6 @@ main#main-content { padding: 0 !important; animation: none !important; }
     btn.disabled = true;
     btn.textContent = 'جارٍ النشر...';
 
-    var fullContent = buildFrontMatter({ title: title, description: desc, excerpt: excerpt, tags: tags }) + content;
-    var contentB64 = utf8ToBase64(fullContent);
     var now = new Date();
     var dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
     var baseSlug = customSlug || slugify(title) || 'post';
@@ -1521,7 +1609,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
       var filename = '_posts/' + dateStr + '-' + slug + '.md';
       fetch('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(filename), { headers: apiHeaders })
         .then(function (res) {
-          if (res.status === 404) return create(filename);
+          if (res.status === 404) return create(filename, slug);
           if (res.ok) {
             if (tries >= 5) { throw new Error('فشل إيجاد اسم متاح'); }
             return attempt(slug + '-' + (tries + 2), tries + 1);
@@ -1530,7 +1618,11 @@ main#main-content { padding: 0 !important; animation: none !important; }
         })
         .catch(onError);
     }
-    function create(filename) {
+    function create(filename, finalSlug) {
+      // Pin the URL to the chosen slug so Arabic titles don't produce weird URLs
+      var permalink = '/' + finalSlug + '/';
+      var fullContent = buildFrontMatter({ title: title, description: desc, excerpt: excerpt, tags: tags, permalink: permalink }) + content;
+      var contentB64 = utf8ToBase64(fullContent);
       fetch('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(filename), {
         method: 'PUT',
         headers: Object.assign({ 'Content-Type': 'application/json' }, apiHeaders),
@@ -1593,6 +1685,8 @@ main#main-content { padding: 0 !important; animation: none !important; }
   });
 
   // === Init ===
+  // Sidebar starts collapsed on mobile, expanded on desktop
+  if (window.innerWidth <= 768) sidebar.classList.add('collapsed');
   loadInitial();
   updatePublishVisibility();
 })();
