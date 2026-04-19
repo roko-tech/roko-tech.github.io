@@ -498,8 +498,12 @@ main#main-content { padding: 0 !important; }
     <input type="text" id="publish-title" placeholder="مثال: كيفية إعداد سيرفر خاص">
     <label>الوصف</label>
     <textarea id="publish-desc" placeholder="وصف مختصر للمقالة (اختياري)"></textarea>
+    <label>الملخص (يظهر في الصفحة الرئيسية)</label>
+    <textarea id="publish-excerpt" placeholder="اختياري — يُستخدم أول جزء من المقالة إذا تُرك فارغاً"></textarea>
     <label>الوسوم (مفصولة بفاصلة)</label>
     <input type="text" id="publish-tags" placeholder="مثال: تقنية, لينكس, سيرفر">
+    <label>اسم الملف (slug) — بالإنجليزية موصى به</label>
+    <input type="text" id="publish-slug" placeholder="my-post-slug (اختياري — يُولَّد من العنوان)">
     <div class="modal-actions">
       <button type="button" class="btn-primary" id="publish-btn" data-modal-action="publish">نشر الآن</button>
       <button type="button" class="btn-secondary" data-modal-action="close" data-modal-target="publish-modal">إلغاء</button>
@@ -659,10 +663,32 @@ main#main-content { padding: 0 !important; }
     if (lineEnd === -1) lineEnd = text.length;
     var block = text.substring(lineStart, lineEnd);
     var lines = block.split('\n');
-    var result = lines.map(function(line, i) {
-      if (prefix === '1. ') return (i + 1) + '. ' + line;
-      return prefix + line;
-    }).join('\n');
+
+    // Toggle off when every non-empty line already carries the prefix
+    var olRe = /^\d+\.\s/;
+    var plainRe = new RegExp('^' + prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    var testRe = prefix === '1. ' ? olRe : plainRe;
+    var nonEmpty = lines.filter(function (l) { return l.trim() !== ''; });
+    var allHave = nonEmpty.length > 0 && nonEmpty.every(function (l) { return testRe.test(l); });
+
+    var result;
+    if (allHave) {
+      result = lines.map(function (line) {
+        if (prefix === '1. ') return line.replace(olRe, '');
+        return testRe.test(line) ? line.substring(prefix.length) : line;
+      }).join('\n');
+    } else {
+      var n = 1;
+      result = lines.map(function (line) {
+        if (line.trim() === '') return line;
+        if (prefix === '1. ') {
+          if (olRe.test(line)) return line;
+          return (n++) + '. ' + line;
+        }
+        if (testRe.test(line)) return line;
+        return prefix + line;
+      }).join('\n');
+    }
     input.value = text.substring(0, lineStart) + result + text.substring(lineEnd);
     input.focus();
   }
@@ -706,7 +732,10 @@ main#main-content { padding: 0 !important; }
         insertAtCursor('\n| العمود 1 | العمود 2 | العمود 3 |\n| --- | --- | --- |\n| خلية | خلية | خلية |\n');
         break;
       case 'hr': insertAtCursor('\n---\n'); break;
-      case 'import': fileInput.click(); break;
+      case 'import':
+        if (input.value.trim() && !confirm('سيستبدل الملف المستورد محتوى المحرر الحالي. متابعة؟')) return;
+        fileInput.click();
+        break;
       case 'export-md': exportMarkdown(); break;
       case 'publish': openPublishModal(); break;
       case 'settings': openModal('settings-modal'); updateTokenStatus(); break;
@@ -926,10 +955,12 @@ main#main-content { padding: 0 !important; }
   // === Publish ===
   function slugify(text) {
     return text
-      .replace(/[^\u0621-\u064Aa-zA-Z0-9\s-]/g, '')
+      .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '') // strip Arabic diacritics
+      .replace(/[^\u0600-\u06FFa-zA-Z0-9\s-]/g, '') // keep full Arabic block + ASCII
       .trim()
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '')
       .substring(0, 80);
   }
 
@@ -956,7 +987,9 @@ main#main-content { padding: 0 !important; }
     if (!title) { showToast('العنوان مطلوب'); return; }
 
     var desc = document.getElementById('publish-desc').value.trim();
+    var excerpt = document.getElementById('publish-excerpt').value.trim();
     var tags = document.getElementById('publish-tags').value.trim();
+    var customSlug = document.getElementById('publish-slug').value.trim();
     var content = input.value;
 
     if (!content.trim()) { showToast('المقالة فارغة'); return; }
@@ -970,6 +1003,7 @@ main#main-content { padding: 0 !important; }
     frontMatter += 'title: "' + title.replace(/"/g, '\\"') + '"\n';
     frontMatter += 'layout: post\n';
     if (desc) frontMatter += 'description: "' + desc.replace(/"/g, '\\"') + '"\n';
+    if (excerpt) frontMatter += 'excerpt: "' + excerpt.replace(/"/g, '\\"') + '"\n';
     if (tags) {
       var tagList = tags.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
       frontMatter += 'tags: [' + tagList.map(function(t) { return '"' + t + '"'; }).join(', ') + ']\n';
@@ -977,51 +1011,66 @@ main#main-content { padding: 0 !important; }
     frontMatter += '---\n\n';
 
     var fullContent = frontMatter + content;
+    var contentB64 = btoa(new TextEncoder().encode(fullContent).reduce(function(s, b) { return s + String.fromCharCode(b); }, ''));
 
-    // Build filename: YYYY-MM-DD-slug.md
     var now = new Date();
     var dateStr = now.getFullYear() + '-' +
       String(now.getMonth() + 1).padStart(2, '0') + '-' +
       String(now.getDate()).padStart(2, '0');
-    var slug = slugify(title) || 'post';
-    var filename = '_posts/' + dateStr + '-' + slug + '.md';
+    var baseSlug = customSlug || slugify(title) || 'post';
 
-    // GitHub API: create file
-    fetch('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(filename), {
-      method: 'PUT',
-      headers: {
-        'Authorization': 'Bearer ' + token,
-        'Content-Type': 'application/json',
-        'Accept': 'application/vnd.github.v3+json'
-      },
-      body: JSON.stringify({
-        message: 'نشر مقالة: ' + title,
-        content: btoa(new TextEncoder().encode(fullContent).reduce(function(s, b) { return s + String.fromCharCode(b); }, ''))
+    var apiHeaders = {
+      'Authorization': 'Bearer ' + token,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
+
+    attempt(baseSlug, 0);
+
+    function attempt(slug, tries) {
+      var filename = '_posts/' + dateStr + '-' + slug + '.md';
+      fetch('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(filename), { headers: apiHeaders })
+        .then(function(res) {
+          if (res.status === 404) return create(filename);
+          if (res.ok) {
+            if (tries >= 5) { throw new Error('فشل إيجاد اسم متاح'); }
+            return attempt(slug + '-' + (tries + 2), tries + 1);
+          }
+          throw new Error('تعذّر التحقق من وجود الملف (' + res.status + ')');
+        })
+        .catch(onError);
+    }
+
+    function create(filename) {
+      fetch('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(filename), {
+        method: 'PUT',
+        headers: Object.assign({ 'Content-Type': 'application/json' }, apiHeaders),
+        body: JSON.stringify({ message: 'نشر مقالة: ' + title, content: contentB64 })
       })
-    })
-    .then(function(res) {
-      if (!res.ok) return res.json().then(function(err) { throw new Error(err.message || 'فشل النشر'); });
-      return res.json();
-    })
-    .then(function(data) {
-      btn.disabled = false;
-      btn.textContent = 'نشر الآن';
-      closeModal('publish-modal');
-      showToast('تم النشر بنجاح! سيظهر المقال خلال دقائق');
-      // Clear form
-      document.getElementById('publish-title').value = '';
-      document.getElementById('publish-desc').value = '';
-      document.getElementById('publish-tags').value = '';
-      // Clear editor
-      input.value = '';
-      renderPreview();
-      localStorage.removeItem(STORAGE_KEY);
-    })
-    .catch(function(err) {
+      .then(function(res) {
+        if (!res.ok) return res.json().then(function(err) { throw new Error(err.message || 'فشل النشر'); });
+        return res.json();
+      })
+      .then(function() {
+        btn.disabled = false;
+        btn.textContent = 'نشر الآن';
+        closeModal('publish-modal');
+        showToast('تم النشر بنجاح! سيظهر المقال خلال دقائق');
+        ['publish-title', 'publish-desc', 'publish-excerpt', 'publish-tags', 'publish-slug'].forEach(function(id) {
+          var el = document.getElementById(id); if (el) el.value = '';
+        });
+        input.value = '';
+        renderPreview();
+        localStorage.removeItem(STORAGE_KEY);
+      })
+      .catch(onError);
+    }
+
+    function onError(err) {
       btn.disabled = false;
       btn.textContent = 'نشر الآن';
       showToast('خطأ: ' + err.message);
-    });
+    }
   };
 
   // === Mobile tabs ===
