@@ -7,12 +7,93 @@ sitemap: false
 <style>
 /* Override site max-width for full-width editor */
 body { max-width: 100% !important; }
-main#main-content { padding: 0 !important; }
+main#main-content { padding: 0 !important; animation: none !important; }
 
 .editor-container {
   display: flex;
+  height: calc(100dvh - 4rem);
+  overflow: hidden;
+}
+
+/* Sidebar (drafts list) */
+.editor-sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  background: var(--bg-surface);
+  border-inline-end: 1px solid var(--border-subtle);
+  display: flex;
   flex-direction: column;
-  height: calc(100vh - 56px);
+  overflow: hidden;
+  transition: width 0.18s ease;
+}
+.editor-sidebar.collapsed { width: 0; border-inline-end: none; }
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 0.75em;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  flex-shrink: 0;
+}
+.sidebar-header button {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 1.05em;
+  line-height: 1;
+}
+.sidebar-header button:hover { background: var(--border-subtle); color: var(--text-primary); }
+.drafts-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
+}
+.draft-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.85em;
+  transition: background 0.15s, color 0.15s;
+}
+.draft-item:hover { background: rgba(127, 127, 127, 0.08); color: var(--text-primary); }
+.draft-item.active { background: var(--tag-bg); color: var(--text-primary); }
+.draft-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.draft-delete {
+  background: transparent;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  visibility: hidden;
+  font-size: 1em;
+  line-height: 1;
+}
+.draft-item:hover .draft-delete { visibility: visible; }
+.draft-delete:hover { color: #ef4444; background: rgba(239,68,68,0.1); }
+.draft-empty { padding: 12px; color: var(--text-tertiary); font-size: 0.8em; text-align: center; }
+
+.editor-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
   overflow: hidden;
 }
 
@@ -59,6 +140,10 @@ main#main-content { padding: 0 !important; }
 .editor-toolbar button:hover {
   background: var(--border-subtle);
   color: var(--text-primary);
+}
+.editor-toolbar button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 .editor-toolbar button:active {
   background: var(--border-default);
@@ -113,6 +198,7 @@ main#main-content { padding: 0 !important; }
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--space-3);
   padding: 6px 16px;
   background: var(--bg-surface-hover);
   font-size: 0.75em;
@@ -122,12 +208,31 @@ main#main-content { padding: 0 !important; }
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
+.pane-header input.draft-name {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95em;
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+  outline: none;
+  min-width: 0;
+  flex: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+.pane-header input.draft-name:focus {
+  background: rgba(127, 127, 127, 0.08);
+}
 .autosave-indicator {
   color: var(--accent);
   opacity: 0;
   transition: opacity 0.3s;
   text-transform: none;
   letter-spacing: 0;
+  flex-shrink: 0;
 }
 .autosave-indicator.visible { opacity: 1; }
 
@@ -139,15 +244,18 @@ main#main-content { padding: 0 !important; }
   border: none;
   resize: none;
   padding: 20px;
-  font-family: "Courier New", "Monaco", monospace;
+  font-family: ui-monospace, "Cascadia Mono", "Consolas", "Cairo", monospace;
   font-size: 0.95em;
   line-height: 1.8;
   direction: rtl;
   outline: none;
   tab-size: 2;
 }
-#md-input::placeholder {
-  color: var(--text-tertiary);
+#md-input::placeholder { color: var(--text-tertiary); }
+#md-input.drag-over {
+  background: var(--tag-bg);
+  outline: 2px dashed var(--accent);
+  outline-offset: -8px;
 }
 
 /* Resize handle */
@@ -193,11 +301,10 @@ main#main-content { padding: 0 !important; }
   padding: 16px;
   overflow-x: auto;
   margin: 1em 0;
+  direction: ltr;
+  text-align: left;
 }
-.preview-content pre code {
-  background: none;
-  padding: 0;
-}
+.preview-content pre code { background: none; padding: 0; }
 .preview-content blockquote {
   border-inline-start: 3px solid var(--accent);
   padding: 0.5em 1em;
@@ -220,10 +327,7 @@ main#main-content { padding: 0 !important; }
   background: var(--bg-surface);
   font-weight: 600;
 }
-.preview-content img {
-  max-width: 100%;
-  border-radius: 8px;
-}
+.preview-content img { max-width: 100%; border-radius: 8px; }
 .preview-content hr {
   border: none;
   border-top: 1px solid var(--border-default);
@@ -243,7 +347,7 @@ main#main-content { padding: 0 !important; }
   font-size: 0.9em;
 }
 
-/* Toast notification */
+/* Toast */
 .editor-toast {
   position: fixed;
   bottom: 24px;
@@ -256,13 +360,15 @@ main#main-content { padding: 0 !important; }
   border: 1px solid var(--border-default);
   font-size: 0.85em;
   font-family: inherit;
-  z-index: 100;
+  z-index: 300;
   transition: transform 0.3s ease;
   pointer-events: none;
+  max-width: 90vw;
+  text-align: center;
 }
-.editor-toast.visible {
-  transform: translateX(-50%) translateY(0);
-}
+.editor-toast.visible { transform: translateX(-50%) translateY(0); }
+.editor-toast.error { border-color: rgba(239,68,68,0.4); }
+.editor-toast.success { border-color: rgba(34,197,94,0.4); }
 
 /* Publish button */
 .editor-toolbar .btn-publish {
@@ -272,18 +378,10 @@ main#main-content { padding: 0 !important; }
   border-radius: 6px;
   gap: 6px;
 }
-.editor-toolbar .btn-publish:hover {
-  background: var(--accent-hover);
-}
-.editor-toolbar #btn-export-post:hover {
-  background: #16a34a;
-}
-.editor-toolbar .btn-settings {
-  color: var(--text-tertiary);
-}
-.editor-toolbar .btn-settings:hover {
-  color: var(--text-secondary);
-}
+.editor-toolbar .btn-publish:hover { background: var(--accent-hover); }
+.editor-toolbar #btn-export-post:hover { background: #16a34a; }
+.editor-toolbar .btn-settings { color: var(--text-tertiary); }
+.editor-toolbar .btn-settings:hover { color: var(--text-secondary); }
 
 /* Modal overlay */
 .modal-overlay {
@@ -303,6 +401,8 @@ main#main-content { padding: 0 !important; }
   border-radius: 12px;
   width: 90%;
   max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
   padding: 24px;
   direction: rtl;
 }
@@ -331,9 +431,7 @@ main#main-content { padding: 0 !important; }
   box-sizing: border-box;
   transition: border-color 0.15s;
 }
-.modal input:focus, .modal textarea:focus {
-  border-color: var(--accent);
-}
+.modal input:focus, .modal textarea:focus { border-color: var(--accent); }
 .modal textarea { resize: vertical; min-height: 60px; }
 .modal-actions {
   display: flex;
@@ -350,19 +448,10 @@ main#main-content { padding: 0 !important; }
   cursor: pointer;
   transition: background 0.15s;
 }
-.btn-primary {
-  background: var(--accent);
-  color: #fff;
-}
+.btn-primary { background: var(--accent); color: #fff; }
 .btn-primary:hover { background: var(--accent-hover); }
-.btn-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-.btn-secondary {
-  background: var(--bg-elevated);
-  color: var(--text-secondary);
-}
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-secondary { background: var(--bg-elevated); color: var(--text-secondary); }
 .btn-secondary:hover { background: var(--bg-surface-hover); }
 
 /* Token status */
@@ -400,10 +489,7 @@ main#main-content { padding: 0 !important; }
   margin-bottom: 16px;
   line-height: 1.6;
 }
-.token-help a {
-  color: var(--accent);
-  text-decoration: none;
-}
+.token-help a { color: var(--accent); text-decoration: none; }
 .token-help a:hover { text-decoration: underline; }
 .token-help p { margin: 4px 0; }
 .token-help ul { margin: 4px 0; padding-inline-start: 1.2em; }
@@ -411,6 +497,8 @@ main#main-content { padding: 0 !important; }
 
 /* Mobile */
 @media (max-width: 768px) {
+  .editor-sidebar { position: absolute; top: 0; bottom: 0; inset-inline-end: 0; z-index: 50; box-shadow: -4px 0 12px rgba(0,0,0,0.4); }
+  .editor-sidebar.collapsed { display: none; }
   .mobile-tabs { display: flex; }
   .editor-resize-handle { display: none; }
   .editor-panes { flex-direction: column; }
@@ -422,70 +510,85 @@ main#main-content { padding: 0 !important; }
 </style>
 
 <div class="editor-container">
-  <!-- Toolbar -->
-  <div class="editor-toolbar">
-    <div class="toolbar-group">
-      <button data-action="h1" title="عنوان 1">H1</button>
-      <button data-action="h2" title="عنوان 2">H2</button>
-      <button data-action="h3" title="عنوان 3">H3</button>
+  <!-- Sidebar: drafts -->
+  <aside class="editor-sidebar collapsed" id="editor-sidebar" aria-label="المسودات">
+    <div class="sidebar-header">
+      <span>المسودات</span>
+      <button type="button" id="btn-new-draft" title="مسودة جديدة" aria-label="مسودة جديدة">+</button>
     </div>
-    <div class="toolbar-group">
-      <button data-action="bold" title="عريض (Ctrl+B)"><svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 0 8H6zM6 12h9a4 4 0 0 1 0 8H6z"/></svg></button>
-      <button data-action="italic" title="مائل (Ctrl+I)"><svg viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg></button>
-      <button data-action="strike" title="شطب"><svg viewBox="0 0 24 24"><line x1="4" y1="12" x2="20" y2="12"/><path d="M17.3 4.9c-.5-.4-1.3-.9-2.7-.9-2.5 0-3.8 1.7-3.8 3 0 2.1 1.6 2.8 3.5 3.5"/><path d="M8.3 15.1c0 2 1.5 3.9 4.1 3.9 1.3 0 2.5-.5 3.2-1.3"/></svg></button>
-      <button data-action="code" title="كود (Ctrl+E)"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></button>
-    </div>
-    <div class="toolbar-group">
-      <button data-action="link" title="رابط (Ctrl+K)"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7"/></svg></button>
-      <button data-action="image" title="صورة"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
-    </div>
-    <div class="toolbar-group">
-      <button data-action="ul" title="قائمة"><svg viewBox="0 0 24 24"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg></button>
-      <button data-action="ol" title="قائمة مرقمة"><svg viewBox="0 0 24 24"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><text x="1" y="8" font-size="8" fill="currentColor" stroke="none">1</text><text x="1" y="14" font-size="8" fill="currentColor" stroke="none">2</text><text x="1" y="20" font-size="8" fill="currentColor" stroke="none">3</text></svg></button>
-      <button data-action="quote" title="اقتباس"><svg viewBox="0 0 24 24"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.76-2.02-2-2H5c-1.25 0-2 .76-2 2v6c0 1.25.76 2 2 2h2c.85 0 1.14.27 1.14 1C8 17 5 19 3 21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.76-2.02-2-2h-3c-1.25 0-2 .76-2 2v6c0 1.25.76 2 2 2h2c.85 0 1.14.27 1.14 1C20 17 17 19 15 21z"/></svg></button>
-      <button data-action="table" title="جدول"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></button>
-      <button data-action="hr" title="فاصل">—</button>
-    </div>
-    <div class="toolbar-group">
-      <button data-action="import" title="استيراد ملف"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-      <button data-action="export-md" title="تصدير (Ctrl+S)"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
-      <button data-action="copy-md" title="نسخ Markdown">MD</button>
-      <button data-action="copy-html" title="نسخ HTML">HTML</button>
-      <button data-action="settings" class="btn-settings" title="إعدادات"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.32 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
-      <button data-action="export-post" id="btn-export-post" class="btn-publish" title="تصدير كمقالة جاهزة" style="background:#22c55e !important;"><svg viewBox="0 0 24 24" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> تصدير مقالة</button>
-      <button data-action="publish" id="btn-publish-action" class="btn-publish" title="نشر المقالة" style="display:none;"><svg viewBox="0 0 24 24" width="14" height="14"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg> نشر</button>
-    </div>
-  </div>
+    <div class="drafts-list" id="drafts-list"></div>
+  </aside>
 
-  <!-- Mobile tabs -->
-  <div class="mobile-tabs">
-    <button id="tab-editor" class="active" data-tab="editor">المحرر</button>
-    <button id="tab-preview" data-tab="preview">المعاينة</button>
-  </div>
-
-  <!-- Split Panes -->
-  <div class="editor-panes">
-    <div class="editor-input-pane" id="input-pane">
-      <div class="pane-header">
-        <span>MARKDOWN</span>
-        <span class="autosave-indicator" id="autosave-indicator">تم الحفظ</span>
+  <div class="editor-main">
+    <!-- Toolbar -->
+    <div class="editor-toolbar" role="toolbar" aria-label="أدوات التحرير">
+      <div class="toolbar-group">
+        <button type="button" data-action="toggle-sidebar" title="المسودات" aria-label="المسودات"><svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
       </div>
-      <textarea id="md-input" dir="rtl" spellcheck="true" placeholder="ابدأ الكتابة هنا..." aria-label="محرر Markdown"></textarea>
+      <div class="toolbar-group">
+        <button type="button" data-action="h1" title="عنوان 1">H1</button>
+        <button type="button" data-action="h2" title="عنوان 2">H2</button>
+        <button type="button" data-action="h3" title="عنوان 3">H3</button>
+      </div>
+      <div class="toolbar-group">
+        <button type="button" data-action="bold" title="عريض (Ctrl+B)" aria-label="عريض"><svg viewBox="0 0 24 24"><path d="M6 4h8a4 4 0 0 1 0 8H6zM6 12h9a4 4 0 0 1 0 8H6z"/></svg></button>
+        <button type="button" data-action="italic" title="مائل (Ctrl+I)" aria-label="مائل"><svg viewBox="0 0 24 24"><line x1="19" y1="4" x2="10" y2="4"/><line x1="14" y1="20" x2="5" y2="20"/><line x1="15" y1="4" x2="9" y2="20"/></svg></button>
+        <button type="button" data-action="strike" title="شطب" aria-label="شطب"><svg viewBox="0 0 24 24"><line x1="4" y1="12" x2="20" y2="12"/><path d="M17.3 4.9c-.5-.4-1.3-.9-2.7-.9-2.5 0-3.8 1.7-3.8 3 0 2.1 1.6 2.8 3.5 3.5"/><path d="M8.3 15.1c0 2 1.5 3.9 4.1 3.9 1.3 0 2.5-.5 3.2-1.3"/></svg></button>
+        <button type="button" data-action="code" title="كود (Ctrl+E)" aria-label="كود"><svg viewBox="0 0 24 24"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></button>
+      </div>
+      <div class="toolbar-group">
+        <button type="button" data-action="link" title="رابط (Ctrl+K)" aria-label="رابط"><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7.1-7.1l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7.1 7.1l1.7-1.7"/></svg></button>
+        <button type="button" data-action="image" title="صورة (أو اسحب وأفلت)" aria-label="صورة"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></button>
+      </div>
+      <div class="toolbar-group">
+        <button type="button" data-action="ul" title="قائمة" aria-label="قائمة"><svg viewBox="0 0 24 24"><line x1="9" y1="6" x2="20" y2="6"/><line x1="9" y1="12" x2="20" y2="12"/><line x1="9" y1="18" x2="20" y2="18"/><circle cx="4" cy="6" r="1"/><circle cx="4" cy="12" r="1"/><circle cx="4" cy="18" r="1"/></svg></button>
+        <button type="button" data-action="ol" title="قائمة مرقمة" aria-label="قائمة مرقمة"><svg viewBox="0 0 24 24"><line x1="10" y1="6" x2="21" y2="6"/><line x1="10" y1="12" x2="21" y2="12"/><line x1="10" y1="18" x2="21" y2="18"/><text x="1" y="8" font-size="8" fill="currentColor" stroke="none">1</text><text x="1" y="14" font-size="8" fill="currentColor" stroke="none">2</text><text x="1" y="20" font-size="8" fill="currentColor" stroke="none">3</text></svg></button>
+        <button type="button" data-action="quote" title="اقتباس" aria-label="اقتباس"><svg viewBox="0 0 24 24"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.76-2.02-2-2H5c-1.25 0-2 .76-2 2v6c0 1.25.76 2 2 2h2c.85 0 1.14.27 1.14 1C8 17 5 19 3 21z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.76-2.02-2-2h-3c-1.25 0-2 .76-2 2v6c0 1.25.76 2 2 2h2c.85 0 1.14.27 1.14 1C20 17 17 19 15 21z"/></svg></button>
+        <button type="button" data-action="table" title="جدول" aria-label="جدول"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg></button>
+        <button type="button" data-action="hr" title="فاصل" aria-label="فاصل">—</button>
+      </div>
+      <div class="toolbar-group">
+        <button type="button" data-action="import" title="استيراد ملف" aria-label="استيراد"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        <button type="button" data-action="export-md" title="تصدير Markdown (Ctrl+S)" aria-label="تصدير"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
+        <button type="button" data-action="copy-md" title="نسخ Markdown" aria-label="نسخ Markdown">MD</button>
+        <button type="button" data-action="copy-html" title="نسخ HTML" aria-label="نسخ HTML">HTML</button>
+        <button type="button" data-action="settings" class="btn-settings" title="إعدادات" aria-label="إعدادات"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.32 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+        <button type="button" data-action="export-post" id="btn-export-post" class="btn-publish" title="تصدير كمقالة جاهزة" style="background:#22c55e;"><svg viewBox="0 0 24 24" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> تصدير مقالة</button>
+        <button type="button" data-action="publish" id="btn-publish-action" class="btn-publish" title="نشر المقالة" style="display:none;"><svg viewBox="0 0 24 24" width="14" height="14"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg> نشر</button>
+      </div>
     </div>
 
-    <div class="editor-resize-handle" id="resize-handle"></div>
+    <!-- Mobile tabs -->
+    <div class="mobile-tabs" role="tablist">
+      <button type="button" id="tab-editor" class="active" role="tab" aria-selected="true" data-tab="editor">المحرر</button>
+      <button type="button" id="tab-preview" role="tab" aria-selected="false" data-tab="preview">المعاينة</button>
+    </div>
 
-    <div class="editor-preview-pane" id="preview-pane">
-      <div class="pane-header"><span>PREVIEW</span></div>
-      <div id="md-preview" class="preview-content" dir="rtl">
-        <div class="preview-empty">المعاينة ستظهر هنا</div>
+    <!-- Split Panes -->
+    <div class="editor-panes">
+      <div class="editor-input-pane" id="input-pane">
+        <div class="pane-header">
+          <input type="text" class="draft-name" id="draft-name" placeholder="اسم المسودة" aria-label="اسم المسودة">
+          <span class="autosave-indicator" id="autosave-indicator" aria-live="polite">تم الحفظ</span>
+        </div>
+        <textarea id="md-input" dir="rtl" spellcheck="true" placeholder="ابدأ الكتابة هنا... (يمكن سحب وإفلات الصور للرفع التلقائي)" aria-label="محرر Markdown"></textarea>
+      </div>
+
+      <div class="editor-resize-handle" id="resize-handle" role="separator" aria-orientation="vertical" aria-label="تغيير حجم اللوح"></div>
+
+      <div class="editor-preview-pane" id="preview-pane">
+        <div class="pane-header"><span>PREVIEW</span></div>
+        <div id="md-preview" class="preview-content" dir="rtl" aria-live="polite">
+          <div class="preview-empty">المعاينة ستظهر هنا</div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Hidden file input -->
+<!-- Hidden file inputs -->
 <input type="file" id="file-import" accept=".md,.txt,.markdown" hidden>
+<input type="file" id="file-image" accept="image/*" hidden>
 
 <!-- Publish Modal -->
 <div class="modal-overlay" id="publish-modal">
@@ -494,15 +597,15 @@ main#main-content { padding: 0 !important; }
     <div id="publish-token-warning" style="display:none;padding:12px;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.3);border-radius:8px;margin-bottom:16px;font-size:0.8em;color:#ef4444;">
       يجب إعداد GitHub Token أولاً من الإعدادات
     </div>
-    <label>عنوان المقالة *</label>
+    <label for="publish-title">عنوان المقالة *</label>
     <input type="text" id="publish-title" placeholder="مثال: كيفية إعداد سيرفر خاص">
-    <label>الوصف</label>
+    <label for="publish-desc">الوصف</label>
     <textarea id="publish-desc" placeholder="وصف مختصر للمقالة (اختياري)"></textarea>
-    <label>الملخص (يظهر في الصفحة الرئيسية)</label>
+    <label for="publish-excerpt">الملخص (يظهر في الصفحة الرئيسية)</label>
     <textarea id="publish-excerpt" placeholder="اختياري — يُستخدم أول جزء من المقالة إذا تُرك فارغاً"></textarea>
-    <label>الوسوم (مفصولة بفاصلة)</label>
+    <label for="publish-tags">الوسوم (مفصولة بفاصلة)</label>
     <input type="text" id="publish-tags" placeholder="مثال: تقنية, لينكس, سيرفر">
-    <label>اسم الملف (slug) — بالإنجليزية موصى به</label>
+    <label for="publish-slug">اسم الملف (slug) — بالإنجليزية موصى به</label>
     <input type="text" id="publish-slug" placeholder="my-post-slug (اختياري — يُولَّد من العنوان)">
     <div class="modal-actions">
       <button type="button" class="btn-primary" id="publish-btn" data-modal-action="publish">نشر الآن</button>
@@ -516,18 +619,18 @@ main#main-content { padding: 0 !important; }
   <div class="modal" role="dialog" aria-modal="true" aria-label="إعدادات المحرر">
     <h3>إعدادات المحرر</h3>
     <div id="token-status-display"></div>
-    <label>GitHub Personal Access Token</label>
-    <input type="password" id="settings-token" placeholder="ghp_xxxxxxxxxxxx">
+    <label for="settings-token">GitHub Personal Access Token</label>
+    <input type="password" id="settings-token" placeholder="ghp_xxxxxxxxxxxx" autocomplete="off">
     <div class="token-help">
       <p>أنشئ توكن محدود الصلاحية من
-      <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">GitHub Settings → Fine-grained Tokens</a></p>
+      <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener noreferrer">GitHub Settings → Fine-grained Tokens</a></p>
       <p>الإعدادات المطلوبة:</p>
       <ul>
         <li><strong>Repository access</strong> → Only select repositories → <strong>roko-tech.github.io</strong></li>
         <li><strong>Permissions</strong> → Contents → <strong>Read and write</strong></li>
         <li>حدد مدة انتهاء قصيرة (30-90 يوم)</li>
       </ul>
-      <p>التوكن يُحفظ في متصفحك فقط ولا يُرسل لأي طرف آخر.</p>
+      <p>التوكن يُحفظ في المتصفح (sessionStorage) ولا يُرسل لأي طرف آخر.</p>
     </div>
     <div class="modal-actions">
       <button type="button" class="btn-primary" data-modal-action="save-settings">حفظ</button>
@@ -536,33 +639,77 @@ main#main-content { padding: 0 !important; }
   </div>
 </div>
 
-<!-- Toast -->
-<div class="editor-toast" id="editor-toast"></div>
+<!-- Generic Prompt Modal (for link / image) -->
+<div class="modal-overlay" id="prompt-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="prompt-title">
+    <h3 id="prompt-title">إدخال</h3>
+    <div id="prompt-fields"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-primary" id="prompt-ok">موافق</button>
+      <button type="button" class="btn-secondary" id="prompt-cancel">إلغاء</button>
+    </div>
+  </div>
+</div>
 
-<!-- Markdown parser + sanitizer -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.7/purify.min.js" integrity="sha512-78KH17QLT5e55GJqP76vutp1D2iAoy06WcYBXB6iBCsmO6wWzx0Qdg8EDpm8mKXv68BcvHOyeeP4wxAL0twJGQ==" crossorigin="anonymous"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/16.3.0/lib/marked.umd.min.js" integrity="sha512-V6rGY7jjOEUc7q5Ews8mMlretz1Vn2wLdMW/qgABLWunzsLfluM0FwHuGjGQ1lc8jO5vGpGIGFE+rTzB+63HdA==" crossorigin="anonymous"></script>
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <h3 id="confirm-title">تأكيد</h3>
+    <p id="confirm-message" style="color:var(--text-secondary);margin:0 0 20px;line-height:1.6;"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn-primary" id="confirm-ok">موافق</button>
+      <button type="button" class="btn-secondary" id="confirm-cancel">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="editor-toast" id="editor-toast" role="status" aria-live="polite"></div>
+
+<!-- Markdown parser + sanitizer + syntax highlighting -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.2.7/purify.min.js" integrity="sha512-78KH17QLT5e55GJqP76vutp1D2iAoy06WcYBXB6iBCsmO6wWzx0Qdg8EDpm8mKXv68BcvHOyeeP4wxAL0twJGQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/16.3.0/lib/marked.umd.min.js" integrity="sha512-V6rGY7jjOEUc7q5Ews8mMlretz1Vn2wLdMW/qgABLWunzsLfluM0FwHuGjGQ1lc8jO5vGpGIGFE+rTzB+63HdA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script>
 (function() {
+  'use strict';
+
+  // Constants declared first — avoid hoisting-based ordering bugs
+  var REPO = 'roko-tech/roko-tech.github.io';
+  var TOKEN_KEY = 'roko-editor-gh-token';
+  var DRAFTS_KEY = 'roko-editor-drafts';
+  var CURRENT_KEY = 'roko-editor-current';
+  var RESIZE_KEY = 'roko-editor-ratio';
+  var LEGACY_KEY = 'roko-editor-content';
+  var MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+
   // DOM refs
   var input = document.getElementById('md-input');
   var preview = document.getElementById('md-preview');
   var saveIndicator = document.getElementById('autosave-indicator');
   var fileInput = document.getElementById('file-import');
+  var imageInput = document.getElementById('file-image');
   var toast = document.getElementById('editor-toast');
   var handle = document.getElementById('resize-handle');
   var inputPane = document.getElementById('input-pane');
   var previewPane = document.getElementById('preview-pane');
-  var STORAGE_KEY = 'roko-editor-content';
-  var debounceTimer, saveTimer;
+  var sidebar = document.getElementById('editor-sidebar');
+  var draftsList = document.getElementById('drafts-list');
+  var draftNameInput = document.getElementById('draft-name');
 
-  // Configure marked
+  var debounceTimer, saveTimer;
+  var currentDraftId = null;
+  var savedSelection = { start: 0, end: 0 };
+
+  // === Markdown config ===
   if (typeof marked !== 'undefined') {
     marked.setOptions({ gfm: true, breaks: true });
   }
 
-  // === Preview ===
+  // === Preview (sanitized + syntax-highlighted) ===
   function renderPreview() {
     if (typeof marked === 'undefined') {
       preview.innerHTML = '<div class="preview-empty">تعذر تحميل محرك المعاينة</div>';
@@ -573,62 +720,295 @@ main#main-content { padding: 0 !important; }
       preview.innerHTML = '<div class="preview-empty">المعاينة ستظهر هنا</div>';
       return;
     }
-    preview.innerHTML = DOMPurify.sanitize(marked.parse(val));
+    var raw = marked.parse(val);
+    preview.innerHTML = (typeof DOMPurify !== 'undefined')
+      ? DOMPurify.sanitize(raw, { ADD_ATTR: ['target', 'rel'] })
+      : raw;
+    if (typeof Prism !== 'undefined') {
+      preview.querySelectorAll('pre code').forEach(function (el) { Prism.highlightElement(el); });
+    }
   }
 
-  input.addEventListener('input', function() {
+  input.addEventListener('input', function () {
     clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(function() {
+    debounceTimer = setTimeout(function () {
       renderPreview();
       scheduleAutoSave();
     }, 150);
   });
 
+  // Always keep the selection up to date — avoids losing it when a modal takes focus
+  ['keyup', 'mouseup', 'click', 'select'].forEach(function (ev) {
+    input.addEventListener(ev, function () {
+      savedSelection = { start: input.selectionStart, end: input.selectionEnd };
+    });
+  });
+
+  // === Drafts model ===
+  function loadDrafts() {
+    try {
+      var json = localStorage.getItem(DRAFTS_KEY);
+      return json ? JSON.parse(json) : {};
+    } catch (e) { return {}; }
+  }
+  function saveDrafts(drafts) {
+    try { localStorage.setItem(DRAFTS_KEY, JSON.stringify(drafts)); } catch (e) {}
+  }
+  function uid() {
+    return 'd-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+  }
+  function migrateLegacy() {
+    var legacy = localStorage.getItem(LEGACY_KEY);
+    if (!legacy) return;
+    var drafts = loadDrafts();
+    if (!Object.keys(drafts).length) {
+      var id = uid();
+      drafts[id] = { name: 'مسودة سابقة', content: legacy, updatedAt: Date.now() };
+      saveDrafts(drafts);
+      localStorage.setItem(CURRENT_KEY, id);
+    }
+    localStorage.removeItem(LEGACY_KEY);
+  }
+  function renderDrafts() {
+    var drafts = loadDrafts();
+    var ids = Object.keys(drafts).sort(function (a, b) { return (drafts[b].updatedAt || 0) - (drafts[a].updatedAt || 0); });
+    if (ids.length === 0) {
+      draftsList.innerHTML = '<div class="draft-empty">لا توجد مسودات</div>';
+      return;
+    }
+    draftsList.innerHTML = '';
+    ids.forEach(function (id) {
+      var d = drafts[id];
+      var item = document.createElement('div');
+      item.className = 'draft-item' + (id === currentDraftId ? ' active' : '');
+      item.dataset.id = id;
+      item.setAttribute('role', 'button');
+      item.setAttribute('tabindex', '0');
+
+      var title = document.createElement('span');
+      title.className = 'draft-title';
+      title.textContent = d.name || 'بدون اسم';
+      item.appendChild(title);
+
+      var del = document.createElement('button');
+      del.type = 'button';
+      del.className = 'draft-delete';
+      del.textContent = '×';
+      del.setAttribute('aria-label', 'حذف المسودة');
+      del.addEventListener('click', function (e) {
+        e.stopPropagation();
+        confirmDialog('حذف مسودة "' + (d.name || 'بدون اسم') + '"؟', function () {
+          var drafts = loadDrafts();
+          delete drafts[id];
+          saveDrafts(drafts);
+          if (id === currentDraftId) {
+            var remaining = Object.keys(drafts);
+            if (remaining.length > 0) switchDraft(remaining[0]);
+            else newDraft();
+          } else {
+            renderDrafts();
+          }
+        });
+      });
+      item.appendChild(del);
+
+      var open = function () { switchDraft(id); };
+      item.addEventListener('click', open);
+      item.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+      });
+      draftsList.appendChild(item);
+    });
+  }
+  function switchDraft(id) {
+    flushSave();
+    var drafts = loadDrafts();
+    if (!drafts[id]) return;
+    currentDraftId = id;
+    localStorage.setItem(CURRENT_KEY, id);
+    input.value = drafts[id].content || '';
+    draftNameInput.value = drafts[id].name || '';
+    renderPreview();
+    renderDrafts();
+    input.focus();
+  }
+  function newDraft() {
+    flushSave();
+    var id = uid();
+    var drafts = loadDrafts();
+    drafts[id] = { name: 'مسودة جديدة', content: '', updatedAt: Date.now() };
+    saveDrafts(drafts);
+    currentDraftId = id;
+    localStorage.setItem(CURRENT_KEY, id);
+    input.value = '';
+    draftNameInput.value = drafts[id].name;
+    renderPreview();
+    renderDrafts();
+    input.focus();
+  }
+  function deleteCurrentDraftSilent() {
+    if (!currentDraftId) return;
+    var drafts = loadDrafts();
+    delete drafts[currentDraftId];
+    saveDrafts(drafts);
+    currentDraftId = null;
+    localStorage.removeItem(CURRENT_KEY);
+  }
+
+  draftNameInput.addEventListener('input', function () {
+    if (!currentDraftId) return;
+    var drafts = loadDrafts();
+    if (!drafts[currentDraftId]) return;
+    drafts[currentDraftId].name = draftNameInput.value.trim() || 'بدون اسم';
+    drafts[currentDraftId].updatedAt = Date.now();
+    saveDrafts(drafts);
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(renderDrafts, 500);
+  });
+
+  document.getElementById('btn-new-draft').addEventListener('click', newDraft);
+
   // === Auto-save ===
   function scheduleAutoSave() {
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(saveContent, 1000);
+    saveTimer = setTimeout(flushSave, 1000);
   }
-
-  function saveContent() {
+  function flushSave() {
+    if (!currentDraftId) return;
     try {
-      localStorage.setItem(STORAGE_KEY, input.value);
+      var drafts = loadDrafts();
+      if (!drafts[currentDraftId]) return;
+      drafts[currentDraftId].content = input.value;
+      drafts[currentDraftId].updatedAt = Date.now();
+      saveDrafts(drafts);
       saveIndicator.classList.add('visible');
-      setTimeout(function() { saveIndicator.classList.remove('visible'); }, 2000);
-    } catch(e) {}
-  }
-
-  function loadContent() {
-    var saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      input.value = saved;
-      renderPreview();
+      setTimeout(function () { saveIndicator.classList.remove('visible'); }, 2000);
+    } catch (e) {
+      showToast('تعذر الحفظ: ' + (e.message || 'خطأ'), 'error');
     }
   }
-
-  window.addEventListener('beforeunload', function() {
-    if (input.value) localStorage.setItem(STORAGE_KEY, input.value);
-  });
-
-  // === Toast ===
-  function showToast(msg) {
-    toast.textContent = msg;
-    toast.classList.add('visible');
-    setTimeout(function() { toast.classList.remove('visible'); }, 2000);
+  function loadInitial() {
+    migrateLegacy();
+    var drafts = loadDrafts();
+    var ids = Object.keys(drafts);
+    if (ids.length === 0) { newDraft(); return; }
+    var saved = localStorage.getItem(CURRENT_KEY);
+    var id = (saved && drafts[saved]) ? saved : ids[0];
+    switchDraft(id);
   }
 
-  // === URL validation ===
-  function isValidUrl(str) {
-    try {
-      var u = new URL(str);
-      return u.protocol === 'https:' || u.protocol === 'http:';
-    } catch(e) { return false; }
+  window.addEventListener('beforeunload', flushSave);
+
+  // === Toast ===
+  function showToast(msg, type) {
+    toast.textContent = msg;
+    toast.className = 'editor-toast visible' + (type ? ' ' + type : '');
+    setTimeout(function () { toast.className = 'editor-toast'; }, 3000);
+  }
+
+  // === Modals (with focus trap) ===
+  var activeModal = null;
+  var previouslyFocused = null;
+
+  function focusables(el) {
+    return Array.prototype.slice.call(el.querySelectorAll(
+      'button:not([disabled]), [href], input:not([disabled]), textarea:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    ));
+  }
+  function trapFocus(e) {
+    if (!activeModal || e.key !== 'Tab') return;
+    var f = focusables(activeModal.querySelector('.modal'));
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+    else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+  }
+
+  window.openModal = function (id) {
+    var el = document.getElementById(id);
+    previouslyFocused = document.activeElement;
+    el.classList.add('active');
+    activeModal = el;
+    setTimeout(function () {
+      var f = focusables(el.querySelector('.modal'));
+      if (f.length) f[0].focus();
+    }, 10);
+    document.addEventListener('keydown', trapFocus);
+  };
+  window.closeModal = function (id) {
+    document.getElementById(id).classList.remove('active');
+    if (activeModal && activeModal.id === id) activeModal = null;
+    document.removeEventListener('keydown', trapFocus);
+    if (previouslyFocused && previouslyFocused.focus) previouslyFocused.focus();
+    // Restore saved selection when we came back from a modal
+    if (document.activeElement === input || !previouslyFocused) {
+      try {
+        input.selectionStart = savedSelection.start;
+        input.selectionEnd = savedSelection.end;
+      } catch (e) {}
+    }
+  };
+
+  document.querySelectorAll('.modal-overlay').forEach(function (overlay) {
+    overlay.addEventListener('click', function (e) { if (e.target === overlay) closeModal(overlay.id); });
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && activeModal) closeModal(activeModal.id);
+  });
+
+  // Generic prompt dialog — fields: [{id, label, placeholder, multiline, value, type}]
+  function promptDialog(title, fields, callback) {
+    document.getElementById('prompt-title').textContent = title;
+    var container = document.getElementById('prompt-fields');
+    container.innerHTML = '';
+    fields.forEach(function (f) {
+      var label = document.createElement('label');
+      label.htmlFor = 'p-' + f.id;
+      label.textContent = f.label;
+      container.appendChild(label);
+      var inp = f.multiline ? document.createElement('textarea') : document.createElement('input');
+      if (!f.multiline) inp.type = f.type || 'text';
+      inp.id = 'p-' + f.id;
+      inp.placeholder = f.placeholder || '';
+      inp.value = f.value || '';
+      container.appendChild(inp);
+    });
+    var ok = document.getElementById('prompt-ok');
+    var cancel = document.getElementById('prompt-cancel');
+    var finish = function (result) {
+      ok.onclick = null;
+      cancel.onclick = null;
+      closeModal('prompt-modal');
+      callback(result);
+    };
+    ok.onclick = function () {
+      var values = {};
+      fields.forEach(function (f) { values[f.id] = document.getElementById('p-' + f.id).value; });
+      finish(values);
+    };
+    cancel.onclick = function () { finish(null); };
+    openModal('prompt-modal');
+  }
+
+  function confirmDialog(message, onOk, onCancel) {
+    document.getElementById('confirm-message').textContent = message;
+    var ok = document.getElementById('confirm-ok');
+    var cancel = document.getElementById('confirm-cancel');
+    var finish = function (result) {
+      ok.onclick = null;
+      cancel.onclick = null;
+      closeModal('confirm-modal');
+      if (result && onOk) onOk();
+      else if (!result && onCancel) onCancel();
+    };
+    ok.onclick = function () { finish(true); };
+    cancel.onclick = function () { finish(false); };
+    openModal('confirm-modal');
   }
 
   // === Toolbar helpers ===
   function wrapSelection(before, after) {
-    var start = input.selectionStart;
-    var end = input.selectionEnd;
+    var start = input.selectionStart, end = input.selectionEnd;
     var text = input.value;
     var selected = text.substring(start, end) || 'نص';
     input.value = text.substring(0, start) + before + selected + after + text.substring(end);
@@ -647,7 +1027,6 @@ main#main-content { padding: 0 !important; }
     if (line.startsWith(prefix)) {
       input.value = text.substring(0, lineStart) + line.substring(prefix.length) + text.substring(lineEnd);
     } else {
-      // Remove other heading prefixes if adding heading
       var cleaned = line.replace(/^#{1,6}\s/, '');
       input.value = text.substring(0, lineStart) + prefix + cleaned + text.substring(lineEnd);
     }
@@ -655,8 +1034,7 @@ main#main-content { padding: 0 !important; }
   }
 
   function prefixLines(prefix) {
-    var start = input.selectionStart;
-    var end = input.selectionEnd;
+    var start = input.selectionStart, end = input.selectionEnd;
     var text = input.value;
     var lineStart = text.lastIndexOf('\n', start - 1) + 1;
     var lineEnd = text.indexOf('\n', end - 1);
@@ -664,7 +1042,6 @@ main#main-content { padding: 0 !important; }
     var block = text.substring(lineStart, lineEnd);
     var lines = block.split('\n');
 
-    // Toggle off when every non-empty line already carries the prefix
     var olRe = /^\d+\.\s/;
     var plainRe = new RegExp('^' + prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
     var testRe = prefix === '1. ' ? olRe : plainRe;
@@ -701,9 +1078,26 @@ main#main-content { padding: 0 !important; }
     input.focus();
   }
 
+  function replaceSavedSelection(str) {
+    var s = savedSelection.start, e = savedSelection.end;
+    input.value = input.value.substring(0, s) + str + input.value.substring(e);
+    input.selectionStart = input.selectionEnd = s + str.length;
+    savedSelection = { start: s + str.length, end: s + str.length };
+    input.focus();
+  }
+
+  // === URL validation ===
+  function isValidUrl(str) {
+    try {
+      var u = new URL(str, window.location.origin);
+      return u.protocol === 'https:' || u.protocol === 'http:';
+    } catch (e) { return false; }
+  }
+
   // === Actions ===
   function handleAction(action) {
-    switch(action) {
+    switch (action) {
+      case 'toggle-sidebar': sidebar.classList.toggle('collapsed'); return;
       case 'h1': prefixLine('# '); break;
       case 'h2': prefixLine('## '); break;
       case 'h3': prefixLine('### '); break;
@@ -711,20 +1105,38 @@ main#main-content { padding: 0 !important; }
       case 'italic': wrapSelection('*', '*'); break;
       case 'strike': wrapSelection('~~', '~~'); break;
       case 'code': wrapSelection('`', '`'); break;
-      case 'link':
-        var url = prompt('أدخل الرابط:');
-        if (url && isValidUrl(url)) {
-          var s = input.selectionStart, e = input.selectionEnd;
-          var sel = input.value.substring(s, e) || 'رابط';
-          input.value = input.value.substring(0, s) + '[' + sel + '](' + url + ')' + input.value.substring(e);
-          input.focus();
-        } else if (url) { showToast('رابط غير صالح'); }
-        break;
-      case 'image':
-        var imgUrl = prompt('أدخل رابط الصورة:');
-        if (imgUrl && isValidUrl(imgUrl)) insertAtCursor('![صورة](' + imgUrl + ')');
-        else if (imgUrl) { showToast('رابط غير صالح'); }
-        break;
+      case 'link': {
+        var sel = input.value.substring(savedSelection.start, savedSelection.end);
+        promptDialog('إدراج رابط', [
+          { id: 'text', label: 'نص الرابط', placeholder: 'رابط', value: sel },
+          { id: 'url', label: 'الرابط', placeholder: 'https://example.com' }
+        ], function (v) {
+          if (!v || !v.url) return;
+          if (!isValidUrl(v.url)) { showToast('رابط غير صالح', 'error'); return; }
+          replaceSavedSelection('[' + (v.text || 'رابط') + '](' + v.url + ')');
+          renderPreview();
+          scheduleAutoSave();
+        });
+        return;
+      }
+      case 'image': {
+        promptDialog('إدراج صورة', [
+          { id: 'alt', label: 'الوصف (alt)', placeholder: 'وصف مختصر' },
+          { id: 'url', label: 'الرابط (أو اترك فارغاً لاختيار ملف)', placeholder: 'https://...' }
+        ], function (v) {
+          if (!v) return;
+          if (!v.url) {
+            imageInput.dataset.alt = v.alt || 'صورة';
+            imageInput.click();
+            return;
+          }
+          if (!isValidUrl(v.url)) { showToast('رابط غير صالح', 'error'); return; }
+          replaceSavedSelection('![' + (v.alt || 'صورة') + '](' + v.url + ')');
+          renderPreview();
+          scheduleAutoSave();
+        });
+        return;
+      }
       case 'ul': prefixLines('- '); break;
       case 'ol': prefixLines('1. '); break;
       case 'quote': prefixLines('> '); break;
@@ -733,42 +1145,53 @@ main#main-content { padding: 0 !important; }
         break;
       case 'hr': insertAtCursor('\n---\n'); break;
       case 'import':
-        if (input.value.trim() && !confirm('سيستبدل الملف المستورد محتوى المحرر الحالي. متابعة؟')) return;
-        fileInput.click();
-        break;
-      case 'export-md': exportMarkdown(); break;
-      case 'publish': openPublishModal(); break;
-      case 'settings': openModal('settings-modal'); updateTokenStatus(); break;
+        if (input.value.trim()) {
+          confirmDialog('سيستبدل الملف المستورد محتوى المحرر الحالي. متابعة؟', function () { fileInput.click(); });
+        } else {
+          fileInput.click();
+        }
+        return;
+      case 'export-md': exportMarkdown(); return;
+      case 'publish': openPublishModal(); return;
+      case 'settings': openModal('settings-modal'); updateTokenStatus(); return;
       case 'copy-md':
-        navigator.clipboard.writeText(input.value).then(function() { showToast('تم نسخ Markdown'); });
-        break;
+        navigator.clipboard.writeText(input.value).then(
+          function () { showToast('تم نسخ Markdown', 'success'); },
+          function () { showToast('تعذر النسخ', 'error'); }
+        );
+        return;
       case 'copy-html':
         if (typeof marked !== 'undefined') {
-          navigator.clipboard.writeText(marked.parse(input.value)).then(function() { showToast('تم نسخ HTML'); });
+          var html = marked.parse(input.value);
+          if (typeof DOMPurify !== 'undefined') html = DOMPurify.sanitize(html, { ADD_ATTR: ['target', 'rel'] });
+          navigator.clipboard.writeText(html).then(
+            function () { showToast('تم نسخ HTML', 'success'); },
+            function () { showToast('تعذر النسخ', 'error'); }
+          );
         }
-        break;
-      case 'export-post': exportAsPost(); break;
+        return;
+      case 'export-post': exportAsPost(); return;
     }
     renderPreview();
     scheduleAutoSave();
   }
 
-  // Toolbar click delegation
-  document.querySelector('.editor-toolbar').addEventListener('click', function(e) {
+  document.querySelector('.editor-toolbar').addEventListener('click', function (e) {
     var btn = e.target.closest('button[data-action]');
     if (btn) handleAction(btn.dataset.action);
   });
 
   // === Keyboard shortcuts ===
-  input.addEventListener('keydown', function(e) {
+  input.addEventListener('keydown', function (e) {
     var ctrl = e.ctrlKey || e.metaKey;
-    if (ctrl && e.key === 'b') { e.preventDefault(); handleAction('bold'); }
-    else if (ctrl && e.key === 'i') { e.preventDefault(); handleAction('italic'); }
-    else if (ctrl && e.key === 'k') { e.preventDefault(); handleAction('link'); }
-    else if (ctrl && e.key === 'e') { e.preventDefault(); handleAction('code'); }
-    else if (ctrl && e.key === 's') { e.preventDefault(); handleAction('export-md'); }
-    else if (ctrl && e.shiftKey && (e.key === 'x' || e.key === 'X')) { e.preventDefault(); handleAction('strike'); }
-    else if (e.key === 'Tab') {
+    var key = e.key.toLowerCase();
+    if (ctrl && key === 'b') { e.preventDefault(); handleAction('bold'); }
+    else if (ctrl && key === 'i') { e.preventDefault(); handleAction('italic'); }
+    else if (ctrl && key === 'k') { e.preventDefault(); handleAction('link'); }
+    else if (ctrl && key === 'e') { e.preventDefault(); handleAction('code'); }
+    else if (ctrl && key === 's') { e.preventDefault(); handleAction('export-md'); }
+    else if (ctrl && e.shiftKey && key === 'x') { e.preventDefault(); handleAction('strike'); }
+    else if (e.key === 'Tab' && !e.shiftKey) {
       e.preventDefault();
       insertAtCursor('  ');
       renderPreview();
@@ -777,18 +1200,115 @@ main#main-content { padding: 0 !important; }
   });
 
   // === File import ===
-  fileInput.addEventListener('change', function(e) {
+  fileInput.addEventListener('change', function (e) {
     var file = e.target.files[0];
     if (!file) return;
     var reader = new FileReader();
-    reader.onload = function(ev) {
+    reader.onload = function (ev) {
       input.value = ev.target.result;
       renderPreview();
-      saveContent();
-      showToast('تم استيراد: ' + file.name);
+      flushSave();
+      showToast('تم استيراد: ' + file.name, 'success');
     };
     reader.readAsText(file);
     e.target.value = '';
+  });
+
+  // === Image handling ===
+  imageInput.addEventListener('change', function (e) {
+    var file = e.target.files[0];
+    var alt = imageInput.dataset.alt || 'صورة';
+    if (file) handleImageFile(file, alt);
+    e.target.value = '';
+    delete imageInput.dataset.alt;
+  });
+
+  function handleImageFile(file, alt) {
+    if (!file.type.startsWith('image/')) { showToast('الملف ليس صورة', 'error'); return; }
+    if (file.size > MAX_IMAGE_BYTES) { showToast('الصورة كبيرة جداً (حد أقصى 5MB)', 'error'); return; }
+    var token = sessionStorage.getItem(TOKEN_KEY);
+    if (token) {
+      uploadImageToGitHub(file, alt, token);
+    } else {
+      var reader = new FileReader();
+      reader.onload = function (ev) {
+        replaceSavedSelection('![' + alt + '](' + ev.target.result + ')');
+        renderPreview();
+        scheduleAutoSave();
+        showToast('تم إدراج الصورة (base64 — أضف توكن لرفعها إلى GitHub)', 'success');
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  function bytesToBase64(bytes) {
+    var bin = '';
+    var chunk = 0x8000;
+    for (var i = 0; i < bytes.length; i += chunk) {
+      bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk));
+    }
+    return btoa(bin);
+  }
+
+  function uploadImageToGitHub(file, alt, token) {
+    showToast('جارٍ رفع الصورة...');
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+      var b64 = bytesToBase64(new Uint8Array(ev.target.result));
+      var now = new Date();
+      var dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      var ext = (file.name.match(/\.[^.]+$/) || [''])[0].toLowerCase() || '.png';
+      var base = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9-]/g, '-').replace(/-+/g, '-').slice(0, 40) || 'image';
+      var path = 'assets/uploads/' + dateStr + '-' + base + '-' + Math.random().toString(36).slice(2, 7) + ext;
+
+      fetch('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(path), {
+        method: 'PUT',
+        headers: {
+          'Authorization': 'Bearer ' + token,
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.github+json',
+          'X-GitHub-Api-Version': '2022-11-28'
+        },
+        body: JSON.stringify({ message: 'رفع صورة: ' + path, content: b64 })
+      }).then(function (res) {
+        if (!res.ok) return res.json().then(function (err) { throw new Error(err.message || 'فشل رفع الصورة'); });
+        return res.json();
+      }).then(function () {
+        var url = '/' + path;
+        replaceSavedSelection('![' + alt + '](' + url + ')');
+        renderPreview();
+        scheduleAutoSave();
+        showToast('تم رفع الصورة إلى GitHub', 'success');
+      }).catch(function (err) {
+        showToast('خطأ: ' + err.message, 'error');
+      });
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // === Drag & drop images ===
+  ['dragenter', 'dragover'].forEach(function (ev) {
+    input.addEventListener(ev, function (e) {
+      if (!e.dataTransfer) return;
+      var types = e.dataTransfer.types;
+      if (types && Array.prototype.indexOf.call(types, 'Files') !== -1) {
+        e.preventDefault();
+        input.classList.add('drag-over');
+      }
+    });
+  });
+  ['dragleave', 'drop'].forEach(function (ev) {
+    input.addEventListener(ev, function () { input.classList.remove('drag-over'); });
+  });
+  input.addEventListener('drop', function (e) {
+    if (!e.dataTransfer || !e.dataTransfer.files || !e.dataTransfer.files.length) return;
+    var file = e.dataTransfer.files[0];
+    if (file.type.startsWith('image/')) {
+      e.preventDefault();
+      // Insert at the current caret location
+      savedSelection = { start: input.selectionStart, end: input.selectionEnd };
+      handleImageFile(file, 'صورة');
+    }
   });
 
   // === Export ===
@@ -797,50 +1317,56 @@ main#main-content { padding: 0 !important; }
     var url = URL.createObjectURL(blob);
     var a = document.createElement('a');
     a.href = url;
-    a.download = 'document.md';
+    var fname = (draftNameInput.value || 'document').replace(/[^\u0600-\u06FFa-zA-Z0-9-]/g, '-').replace(/-+/g, '-') || 'document';
+    a.download = fname + '.md';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showToast('تم تصدير الملف');
+    showToast('تم تصدير الملف', 'success');
   }
 
-  // === Export as Jekyll post ===
   function exportAsPost() {
     var content = input.value.trim();
-    if (!content) { showToast('المقالة فارغة'); return; }
-    var title = prompt('عنوان المقالة:');
-    if (!title) return;
-    var desc = prompt('وصف مختصر (اختياري):') || '';
-    var tags = prompt('الوسوم مفصولة بفاصلة (اختياري):') || '';
+    if (!content) { showToast('المقالة فارغة', 'error'); return; }
+    promptDialog('تصدير كمقالة Jekyll', [
+      { id: 'title', label: 'العنوان *', placeholder: 'مثال: كيفية إعداد سيرفر خاص' },
+      { id: 'desc', label: 'الوصف', placeholder: 'اختياري', multiline: true },
+      { id: 'excerpt', label: 'الملخص', placeholder: 'اختياري', multiline: true },
+      { id: 'tags', label: 'الوسوم (مفصولة بفاصلة)', placeholder: 'تقنية, لينكس' },
+      { id: 'slug', label: 'slug بالإنجليزية (اختياري)', placeholder: 'my-post' }
+    ], function (v) {
+      if (!v || !v.title.trim()) return;
+      var title = v.title.trim();
+      var fm = buildFrontMatter({ title: title, description: v.desc.trim(), excerpt: v.excerpt.trim(), tags: parseTags(v.tags) });
+      var now = new Date();
+      var dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      var slug = (v.slug.trim() || slugify(title)) || 'post';
+      var filename = dateStr + '-' + slug + '.md';
+      var blob = new Blob([fm + content], { type: 'text/markdown;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('تم تصدير المقالة: ' + filename, 'success');
+    });
+  }
 
-    var frontMatter = '---\n';
-    frontMatter += 'title: "' + title.replace(/"/g, '\\"') + '"\n';
-    frontMatter += 'layout: post\n';
-    if (desc) frontMatter += 'description: "' + desc.replace(/"/g, '\\"') + '"\n';
-    if (tags) {
-      var tagList = tags.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
-      frontMatter += 'tags: [' + tagList.map(function(t) { return '"' + t + '"'; }).join(', ') + ']\n';
-    }
-    frontMatter += '---\n\n';
+  function parseTags(s) { return (s || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean); }
 
-    var now = new Date();
-    var dateStr = now.getFullYear() + '-' +
-      String(now.getMonth() + 1).padStart(2, '0') + '-' +
-      String(now.getDate()).padStart(2, '0');
-    var slug = slugify(title) || 'post';
-    var filename = dateStr + '-' + slug + '.md';
-
-    var blob = new Blob([frontMatter + content], { type: 'text/markdown;charset=utf-8' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    showToast('تم تصدير المقالة: ' + filename);
+  function buildFrontMatter(meta) {
+    var fm = '---\n';
+    fm += 'title: "' + meta.title.replace(/"/g, '\\"') + '"\n';
+    fm += 'layout: post\n';
+    if (meta.description) fm += 'description: "' + meta.description.replace(/"/g, '\\"') + '"\n';
+    if (meta.excerpt) fm += 'excerpt: "' + meta.excerpt.replace(/"/g, '\\"') + '"\n';
+    if (meta.tags && meta.tags.length) fm += 'tags: [' + meta.tags.map(function (t) { return '"' + t + '"'; }).join(', ') + ']\n';
+    fm += '---\n\n';
+    return fm;
   }
 
   // === Toggle publish/export button based on token ===
@@ -857,106 +1383,95 @@ main#main-content { padding: 0 !important; }
     }
   }
 
-  // === Resize handle ===
+  // === Resize handle (with persistence) ===
+  var savedRatio = parseFloat(localStorage.getItem(RESIZE_KEY));
+  if (!isNaN(savedRatio) && savedRatio >= 20 && savedRatio <= 80 && window.innerWidth > 768) {
+    inputPane.style.flex = 'none';
+    inputPane.style.width = savedRatio + '%';
+    previewPane.style.flex = 'none';
+    previewPane.style.width = (100 - savedRatio) + '%';
+  }
   var dragging = false;
-  handle.addEventListener('mousedown', function(e) {
+  handle.addEventListener('mousedown', function (e) {
     dragging = true;
     handle.classList.add('dragging');
     document.body.style.cursor = 'col-resize';
     document.body.style.userSelect = 'none';
     e.preventDefault();
   });
-  document.addEventListener('mousemove', function(e) {
+  document.addEventListener('mousemove', function (e) {
     if (!dragging) return;
-    var container = document.querySelector('.editor-panes');
-    var rect = container.getBoundingClientRect();
+    var rect = document.querySelector('.editor-panes').getBoundingClientRect();
     var offset = rect.right - e.clientX;
-    var percent = (offset / rect.width) * 100;
-    percent = Math.max(20, Math.min(80, percent));
+    var percent = Math.max(20, Math.min(80, (offset / rect.width) * 100));
     inputPane.style.flex = 'none';
     inputPane.style.width = percent + '%';
     previewPane.style.flex = 'none';
     previewPane.style.width = (100 - percent) + '%';
   });
-  document.addEventListener('mouseup', function() {
-    if (dragging) {
-      dragging = false;
-      handle.classList.remove('dragging');
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-    }
-  });
-
-  // === Modals ===
-  var REPO = 'roko-tech/roko-tech.github.io';
-  var TOKEN_KEY = 'roko-editor-gh-token';
-
-  var previouslyFocused = null;
-  window.openModal = function(id) {
-    previouslyFocused = document.activeElement;
-    document.getElementById(id).classList.add('active');
-  };
-  window.closeModal = function(id) {
-    document.getElementById(id).classList.remove('active');
-    if (previouslyFocused && previouslyFocused.focus) {
-      previouslyFocused.focus();
-    }
-  };
-
-  // Close modals on overlay click
-  document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
-    overlay.addEventListener('click', function(e) {
-      if (e.target === overlay) overlay.classList.remove('active');
-    });
-  });
-  // Close modals on Escape
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      document.querySelectorAll('.modal-overlay.active').forEach(function(m) {
-        m.classList.remove('active');
-      });
-    }
+  document.addEventListener('mouseup', function () {
+    if (!dragging) return;
+    dragging = false;
+    handle.classList.remove('dragging');
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    var w = parseFloat(inputPane.style.width);
+    if (!isNaN(w)) localStorage.setItem(RESIZE_KEY, w.toFixed(1));
   });
 
   // === Settings ===
-  window.updateTokenStatus = function() {
+  window.updateTokenStatus = function () {
     var token = sessionStorage.getItem(TOKEN_KEY);
     var container = document.getElementById('token-status-display');
+    var tokenInputEl = document.getElementById('settings-token');
+    container.innerHTML = '';
+    var div = document.createElement('div');
+    var dot = document.createElement('span'); dot.className = 'token-dot';
+    div.appendChild(dot);
     if (token) {
-      container.innerHTML = '<div class="token-status connected"><span class="token-dot"></span>متصل — التوكن محفوظ<button type="button" class="token-remove" data-modal-action="remove-token">حذف</button></div>';
-      document.getElementById('settings-token').value = '';
-      document.getElementById('settings-token').placeholder = 'التوكن محفوظ — أدخل توكن جديد للاستبدال';
+      div.className = 'token-status connected';
+      div.appendChild(document.createTextNode('متصل — التوكن محفوظ'));
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'token-remove';
+      btn.textContent = 'حذف';
+      btn.addEventListener('click', removeToken);
+      div.appendChild(btn);
+      tokenInputEl.value = '';
+      tokenInputEl.placeholder = 'التوكن محفوظ — أدخل توكن جديد للاستبدال';
     } else {
-      container.innerHTML = '<div class="token-status disconnected"><span class="token-dot"></span>غير متصل — أدخل GitHub Token للنشر</div>';
-      document.getElementById('settings-token').placeholder = 'ghp_xxxxxxxxxxxx';
+      div.className = 'token-status disconnected';
+      div.appendChild(document.createTextNode('غير متصل — أدخل GitHub Token للنشر'));
+      tokenInputEl.placeholder = 'ghp_xxxxxxxxxxxx';
     }
+    container.appendChild(div);
   };
 
-  window.removeToken = function() {
+  function removeToken() {
     sessionStorage.removeItem(TOKEN_KEY);
     updateTokenStatus();
     updatePublishVisibility();
-    showToast('تم حذف التوكن');
-  };
+    showToast('تم حذف التوكن', 'success');
+  }
 
-  window.saveSettings = function() {
+  function saveSettings() {
     var tokenInput = document.getElementById('settings-token');
     var token = tokenInput.value.trim();
     if (token) {
       sessionStorage.setItem(TOKEN_KEY, token);
       tokenInput.value = '';
-      showToast('تم حفظ التوكن');
+      showToast('تم حفظ التوكن', 'success');
     }
     updateTokenStatus();
     updatePublishVisibility();
     closeModal('settings-modal');
-  };
+  }
 
   // === Publish ===
   function slugify(text) {
     return text
-      .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '') // strip Arabic diacritics
-      .replace(/[^\u0600-\u06FFa-zA-Z0-9\s-]/g, '') // keep full Arabic block + ASCII
+      .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '') // Arabic diacritics
+      .replace(/[^\u0600-\u06FFa-zA-Z0-9\s-]/g, '')        // Arabic block + ASCII
       .trim()
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
@@ -964,59 +1479,41 @@ main#main-content { padding: 0 !important; }
       .substring(0, 80);
   }
 
-  window.openPublishModal = function() {
+  function utf8ToBase64(str) { return bytesToBase64(new TextEncoder().encode(str)); }
+
+  window.openPublishModal = function () {
     var token = sessionStorage.getItem(TOKEN_KEY);
     var warning = document.getElementById('publish-token-warning');
     var btn = document.getElementById('publish-btn');
-    if (!token) {
-      warning.style.display = 'block';
-      btn.disabled = true;
-    } else {
-      warning.style.display = 'none';
-      btn.disabled = false;
+    if (!token) { warning.style.display = 'block'; btn.disabled = true; }
+    else { warning.style.display = 'none'; btn.disabled = false; }
+    if (draftNameInput.value && !document.getElementById('publish-title').value) {
+      document.getElementById('publish-title').value = draftNameInput.value;
     }
     openModal('publish-modal');
-    document.getElementById('publish-title').focus();
   };
 
-  window.publishPost = function() {
+  function publishPost() {
     var token = sessionStorage.getItem(TOKEN_KEY);
-    if (!token) { showToast('يجب إعداد GitHub Token أولاً'); return; }
-
+    if (!token) { showToast('يجب إعداد GitHub Token أولاً', 'error'); return; }
     var title = document.getElementById('publish-title').value.trim();
-    if (!title) { showToast('العنوان مطلوب'); return; }
+    if (!title) { showToast('العنوان مطلوب', 'error'); return; }
+    var content = input.value;
+    if (!content.trim()) { showToast('المقالة فارغة', 'error'); return; }
 
     var desc = document.getElementById('publish-desc').value.trim();
     var excerpt = document.getElementById('publish-excerpt').value.trim();
-    var tags = document.getElementById('publish-tags').value.trim();
+    var tags = parseTags(document.getElementById('publish-tags').value);
     var customSlug = document.getElementById('publish-slug').value.trim();
-    var content = input.value;
-
-    if (!content.trim()) { showToast('المقالة فارغة'); return; }
 
     var btn = document.getElementById('publish-btn');
     btn.disabled = true;
     btn.textContent = 'جارٍ النشر...';
 
-    // Build front matter
-    var frontMatter = '---\n';
-    frontMatter += 'title: "' + title.replace(/"/g, '\\"') + '"\n';
-    frontMatter += 'layout: post\n';
-    if (desc) frontMatter += 'description: "' + desc.replace(/"/g, '\\"') + '"\n';
-    if (excerpt) frontMatter += 'excerpt: "' + excerpt.replace(/"/g, '\\"') + '"\n';
-    if (tags) {
-      var tagList = tags.split(',').map(function(t) { return t.trim(); }).filter(Boolean);
-      frontMatter += 'tags: [' + tagList.map(function(t) { return '"' + t + '"'; }).join(', ') + ']\n';
-    }
-    frontMatter += '---\n\n';
-
-    var fullContent = frontMatter + content;
-    var contentB64 = btoa(new TextEncoder().encode(fullContent).reduce(function(s, b) { return s + String.fromCharCode(b); }, ''));
-
+    var fullContent = buildFrontMatter({ title: title, description: desc, excerpt: excerpt, tags: tags }) + content;
+    var contentB64 = utf8ToBase64(fullContent);
     var now = new Date();
-    var dateStr = now.getFullYear() + '-' +
-      String(now.getMonth() + 1).padStart(2, '0') + '-' +
-      String(now.getDate()).padStart(2, '0');
+    var dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
     var baseSlug = customSlug || slugify(title) || 'post';
 
     var apiHeaders = {
@@ -1025,65 +1522,69 @@ main#main-content { padding: 0 !important; }
       'X-GitHub-Api-Version': '2022-11-28'
     };
 
-    attempt(baseSlug, 0);
-
     function attempt(slug, tries) {
       var filename = '_posts/' + dateStr + '-' + slug + '.md';
       fetch('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(filename), { headers: apiHeaders })
-        .then(function(res) {
+        .then(function (res) {
           if (res.status === 404) return create(filename);
           if (res.ok) {
             if (tries >= 5) { throw new Error('فشل إيجاد اسم متاح'); }
             return attempt(slug + '-' + (tries + 2), tries + 1);
           }
-          throw new Error('تعذّر التحقق من وجود الملف (' + res.status + ')');
+          throw new Error('تعذّر التحقق من الملف (' + res.status + ')');
         })
         .catch(onError);
     }
-
     function create(filename) {
       fetch('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(filename), {
         method: 'PUT',
         headers: Object.assign({ 'Content-Type': 'application/json' }, apiHeaders),
         body: JSON.stringify({ message: 'نشر مقالة: ' + title, content: contentB64 })
       })
-      .then(function(res) {
-        if (!res.ok) return res.json().then(function(err) { throw new Error(err.message || 'فشل النشر'); });
+      .then(function (res) {
+        if (!res.ok) return res.json().then(function (err) { throw new Error(err.message || 'فشل النشر'); });
         return res.json();
       })
-      .then(function() {
+      .then(function () {
         btn.disabled = false;
         btn.textContent = 'نشر الآن';
         closeModal('publish-modal');
-        showToast('تم النشر بنجاح! سيظهر المقال خلال دقائق');
-        ['publish-title', 'publish-desc', 'publish-excerpt', 'publish-tags', 'publish-slug'].forEach(function(id) {
+        showToast('تم النشر بنجاح! سيظهر المقال خلال دقائق', 'success');
+        ['publish-title', 'publish-desc', 'publish-excerpt', 'publish-tags', 'publish-slug'].forEach(function (id) {
           var el = document.getElementById(id); if (el) el.value = '';
         });
+        deleteCurrentDraftSilent();
         input.value = '';
         renderPreview();
-        localStorage.removeItem(STORAGE_KEY);
+        renderDrafts();
+        newDraft();
       })
       .catch(onError);
     }
-
     function onError(err) {
       btn.disabled = false;
       btn.textContent = 'نشر الآن';
-      showToast('خطأ: ' + err.message);
+      showToast('خطأ: ' + err.message, 'error');
     }
-  };
+
+    attempt(baseSlug, 0);
+  }
 
   // === Mobile tabs ===
-  window.switchTab = function(tab) {
-    document.getElementById('tab-editor').classList.toggle('active', tab === 'editor');
-    document.getElementById('tab-preview').classList.toggle('active', tab === 'preview');
+  window.switchTab = function (tab) {
+    var te = document.getElementById('tab-editor');
+    var tp = document.getElementById('tab-preview');
+    te.classList.toggle('active', tab === 'editor');
+    tp.classList.toggle('active', tab === 'preview');
+    te.setAttribute('aria-selected', tab === 'editor' ? 'true' : 'false');
+    tp.setAttribute('aria-selected', tab === 'preview' ? 'true' : 'false');
     inputPane.classList.toggle('hidden', tab !== 'editor');
     previewPane.classList.toggle('hidden', tab !== 'preview');
     if (tab === 'preview') renderPreview();
   };
 
-  // === Event delegation for buttons ===
-  document.addEventListener('click', function(e) {
+  // === Event delegation for modal/tab buttons ===
+  document.addEventListener('click', function (e) {
     var tab = e.target.closest('[data-tab]');
     if (tab) { switchTab(tab.dataset.tab); return; }
     var action = e.target.closest('[data-modal-action]');
@@ -1097,7 +1598,7 @@ main#main-content { padding: 0 !important; }
   });
 
   // === Init ===
-  loadContent();
+  loadInitial();
   updatePublishVisibility();
 })();
 </script>

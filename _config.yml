@@ -2,6 +2,7 @@ title: "مقالات تقنية"
 author: "Pantera"
 description: "مدونة تقنية عربية تغطي مواضيع البرمجة والتقنية"
 url: "https://roko-tech.github.io"
+timezone: "Asia/Riyadh"
 defaults:
   - scope:
       path: ""

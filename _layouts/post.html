@@ -83,7 +83,7 @@ layout: default
       data-reactions-enabled="1"
       data-emit-metadata="0"
       data-input-position="top"
-      data-theme="https://roko-tech.github.io/assets/css/giscus.css"
+      data-theme="{{ '/assets/css/giscus.css' | absolute_url }}"
       id="giscus-script"
       data-lang="ar"
       data-loading="lazy"
@@ -91,23 +91,23 @@ layout: default
       async>
     </script>
     <script>
-    // Set initial Giscus theme based on current site theme
     (function(){
-      var t = document.documentElement.getAttribute('data-theme');
-      if (t === 'light') {
+      var darkCss = {{ '/assets/css/giscus.css' | absolute_url | jsonify }};
+      var lightCss = {{ '/assets/css/giscus-light.css' | absolute_url | jsonify }};
+      var current = function() { return document.documentElement.getAttribute('data-theme'); };
+      // Set initial Giscus theme based on current site theme
+      if (current() === 'light') {
         var s = document.getElementById('giscus-script');
-        if (s) s.setAttribute('data-theme', 'https://roko-tech.github.io/assets/css/giscus-light.css');
+        if (s) s.setAttribute('data-theme', lightCss);
       }
-    })();
-    // Switch Giscus theme when site theme changes
-    new MutationObserver(function() {
-      var theme = document.documentElement.getAttribute('data-theme');
-      var giscusFrame = document.querySelector('iframe.giscus-frame');
-      if (giscusFrame) {
-        var src = theme === 'light' ? 'https://roko-tech.github.io/assets/css/giscus-light.css' : 'https://roko-tech.github.io/assets/css/giscus.css';
+      // Switch Giscus theme when site theme changes
+      new MutationObserver(function() {
+        var giscusFrame = document.querySelector('iframe.giscus-frame');
+        if (!giscusFrame) return;
+        var src = current() === 'light' ? lightCss : darkCss;
         giscusFrame.contentWindow.postMessage({ giscus: { setConfig: { theme: src } } }, 'https://giscus.app');
-      }
-    }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+      }).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    })();
     </script>
     <noscript>يرجى تفعيل JavaScript لعرض التعليقات.</noscript>
   {% endif %}
