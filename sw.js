@@ -1,14 +1,13 @@
 ---
 ---
-// Service worker — shell + runtime cache
-var VERSION = 'v1-{{ site.time | date: "%s" }}';
+// Service worker — shell precache + smart runtime cache
+var VERSION = 'v2-{{ site.time | date: "%s" }}';
 var SHELL_CACHE = 'shell-' + VERSION;
 var RUNTIME_CACHE = 'runtime-' + VERSION;
 
 var SHELL = [
   '{{ "/" | relative_url }}',
-  '{{ "/assets/css/frame.css" | relative_url }}',
-  '{{ "/assets/icon3.png" | relative_url }}',
+  '{{ "/assets/icon-192.png" | relative_url }}',
   '{{ "/manifest.webmanifest" | relative_url }}'
 ];
 
@@ -32,15 +31,18 @@ self.addEventListener('fetch', function (e) {
   if (req.method !== 'GET') return;
   var url = new URL(req.url);
 
-  // Never intercept cross-origin (GitHub API, Giscus, Google Fonts, CDN, unavatar, etc.)
+  // Never intercept cross-origin (GitHub API, Giscus, Google Fonts, CDN, etc.)
   if (url.origin !== location.origin) return;
   if (url.pathname === '/sw.js') return;
-  // Skip editor page — it needs fresh state each visit
+  // Editor needs fresh state each visit
   if (url.pathname === '/editor.html' || url.pathname === '/editor/') return;
 
-  // Network-first for HTML (so new posts show up)
   var accept = req.headers.get('accept') || '';
-  if (accept.indexOf('text/html') !== -1) {
+  var isHtml = accept.indexOf('text/html') !== -1;
+  // CSS/JS should also be network-first so new deploys take effect immediately
+  var isCode = /\.(css|js)(\?|$)/.test(url.pathname + url.search);
+
+  if (isHtml || isCode) {
     e.respondWith(
       fetch(req).then(function (res) {
         var clone = res.clone();
@@ -51,7 +53,7 @@ self.addEventListener('fetch', function (e) {
     return;
   }
 
-  // Cache-first for assets
+  // Cache-first for images, fonts, other immutable assets
   e.respondWith(
     caches.match(req).then(function (cached) {
       return cached || fetch(req).then(function (res) {
