@@ -83,7 +83,7 @@ layout: default
       data-reactions-enabled="1"
       data-emit-metadata="0"
       data-input-position="top"
-      data-theme="{{ '/assets/css/giscus.css' | absolute_url }}"
+      data-theme="{{ '/assets/css/giscus.css' | absolute_url }}?v={{ site.time | date: '%s' }}"
       id="giscus-script"
       data-lang="ar"
       data-loading="lazy"
@@ -92,8 +92,9 @@ layout: default
     </script>
     <script>
     (function(){
-      var darkCss = {{ '/assets/css/giscus.css' | absolute_url | jsonify }};
-      var lightCss = {{ '/assets/css/giscus-light.css' | absolute_url | jsonify }};
+      var v = '?v={{ site.time | date: "%s" }}';
+      var darkCss = {{ '/assets/css/giscus.css' | absolute_url | jsonify }} + v;
+      var lightCss = {{ '/assets/css/giscus-light.css' | absolute_url | jsonify }} + v;
       var current = function() { return document.documentElement.getAttribute('data-theme'); };
       // Set initial Giscus theme based on current site theme
       if (current() === 'light') {

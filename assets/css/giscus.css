@@ -1,8 +1,11 @@
 /*! Custom Giscus theme matching site dark mode */
-main {
+html, body, main {
   max-width: none !important;
   width: 100% !important;
+  margin: 0 !important;
   padding: 0 !important;
+}
+main {
   --color-canvas-default: #0a0a0b !important;
   --color-canvas-subtle: #111113 !important;
   --color-canvas-inset: #0a0a0b !important;

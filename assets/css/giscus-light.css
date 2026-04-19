@@ -1,8 +1,11 @@
 /*! Custom Giscus light theme matching site light mode */
-main {
+html, body, main {
   max-width: none !important;
   width: 100% !important;
+  margin: 0 !important;
   padding: 0 !important;
+}
+main {
   --color-canvas-default: #f8f9fa !important;
   --color-canvas-subtle: #ffffff !important;
   --color-canvas-inset: #f8f9fa !important;
