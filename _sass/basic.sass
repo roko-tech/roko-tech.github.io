@@ -413,6 +413,15 @@ article img:not(.icono)
     min-height: 120px
     border-radius: var(--radius-sm)
 
+// Giscus comments iframe — force full width since the Giscus client
+// script doesn't reliably set inline width styles on our pages
+iframe.giscus-frame
+  display: block
+  width: 100%
+  min-width: 100%
+  border: 0
+  color-scheme: normal
+
 @keyframes shimmer
   0%
     background-position: 200% 0
