@@ -1227,18 +1227,13 @@ main#main-content { padding: 0 !important; animation: none !important; }
     if (!file.type.startsWith('image/')) { showToast('الملف ليس صورة', 'error'); return; }
     if (file.size > MAX_IMAGE_BYTES) { showToast('الصورة كبيرة جداً (حد أقصى 5MB)', 'error'); return; }
     var token = sessionStorage.getItem(TOKEN_KEY);
-    if (token) {
-      uploadImageToGitHub(file, alt, token);
-    } else {
-      var reader = new FileReader();
-      reader.onload = function (ev) {
-        replaceSavedSelection('![' + alt + '](' + ev.target.result + ')');
-        renderPreview();
-        scheduleAutoSave();
-        showToast('تم إدراج الصورة (base64 — أضف توكن لرفعها إلى GitHub)', 'success');
-      };
-      reader.readAsDataURL(file);
+    if (!token) {
+      showToast('يتطلب رفع الصور GitHub Token — استخدم الإعدادات', 'error');
+      openModal('settings-modal');
+      updateTokenStatus();
+      return;
     }
+    uploadImageToGitHub(file, alt, token);
   }
 
   function bytesToBase64(bytes) {

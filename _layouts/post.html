@@ -52,7 +52,7 @@ layout: default
   <div class="post-tags">
     {% for tag in page.tags %}
       {% capture tag_name %}{{ tag }}{% endcapture %}
-      <a href="/tag/{{ tag_name }}">{{ tag_name }}</a>
+      <a href="{{ '/tag/' | append: tag_name | append: '/' | relative_url }}">{{ tag_name }}</a>
     {% endfor %}
   </div>
 
