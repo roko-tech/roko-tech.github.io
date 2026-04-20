@@ -87,11 +87,14 @@
 .post-card-title
   font-size: 1.35em
   margin: 0 0 var(--space-1)
+  color: var(--text-primary)
+  transition: color 0.2s
   a
-    color: var(--text-primary)
+    color: inherit
     text-decoration: none
     transition: color 0.2s
 
+.post-card:hover .post-card-title,
 .post-card:hover .post-card-title a
   color: var(--accent-hover)
 
