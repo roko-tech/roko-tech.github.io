@@ -54,7 +54,11 @@
     {%- assign node = site.pages | where: "name", item.file | first -%}
     {%- assign url = item.url | default: node.url -%}
     {%- assign title = item.title | default: node.title -%}
-    <a href="{{ url | relative_url }}" {% if url == page.url %}class="selected"{% endif %}{% if item.url contains "://" %} rel="noopener noreferrer" target="_blank"{% endif %}>
+    {%- assign rel_values = "" -%}
+    {%- if url == page.url %}{%- assign cls = "selected" -%}{% else %}{%- assign cls = "" -%}{% endif -%}
+    {%- if item.url contains "://" %}{%- assign rel_values = "noopener noreferrer" -%}{% endif -%}
+    {%- if item.url contains "x.com" or item.url contains "twitter.com" or item.url contains "github.com" %}{%- assign rel_values = rel_values | append: " me" | strip -%}{% endif -%}
+    <a href="{{ url | relative_url }}"{% if cls != "" %} class="{{ cls }}"{% endif %}{% if item.url contains "://" %} target="_blank"{% endif %}{% if rel_values != "" %} rel="{{ rel_values }}"{% endif %}>
       {{- title -}}
     </a>
   {%- endfor -%}
@@ -85,6 +89,24 @@
 </div>
 {% endif %}
 
+{% if page.layout == "post" %}
+<nav class="breadcrumbs" aria-label="breadcrumb">
+  <ol>
+    <li><a href="{{ '/' | relative_url }}">الرئيسية</a></li>
+    <li><a href="{{ '/archive.html' | relative_url }}">الأرشيف</a></li>
+    <li><span aria-current="page">{{ page.title }}</span></li>
+  </ol>
+</nav>
+{% elsif page.layout == "tagpage" %}
+<nav class="breadcrumbs" aria-label="breadcrumb">
+  <ol>
+    <li><a href="{{ '/' | relative_url }}">الرئيسية</a></li>
+    <li><a href="{{ '/archive.html' | relative_url }}">الأرشيف</a></li>
+    <li><span aria-current="page">{{ page.tag }}</span></li>
+  </ol>
+</nav>
+{% endif %}
+
 <main id="main-content">
 {{ content }}
 </main>
@@ -102,8 +124,8 @@
 
 <!-- Floating back-to-top -->
 <button class="back-to-top-float" id="back-to-top-float" aria-label="العودة للأعلى">
-  <svg class="btt-ring" width="44" height="44" viewBox="0 0 44 44">
-    <circle cx="22" cy="22" r="19" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="2.5"/>
+  <svg class="btt-ring" width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+    <circle class="btt-track" cx="22" cy="22" r="19" fill="none" stroke-width="2.5"/>
     <circle class="btt-progress" cx="22" cy="22" r="19" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="119.38" stroke-dashoffset="119.38" transform="rotate(-90 22 22)"/>
   </svg>
   <svg class="btt-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>

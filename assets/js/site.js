@@ -28,6 +28,20 @@
     });
   }
 
+  // === Expose real header height as --header-h (editor reads it via calc()) ===
+  var _header = document.querySelector('body > header');
+  function updateHeaderVar() {
+    if (!_header) return;
+    document.documentElement.style.setProperty('--header-h', _header.offsetHeight + 'px');
+  }
+  updateHeaderVar();
+  window.addEventListener('resize', updateHeaderVar, { passive: true });
+  window.addEventListener('load', updateHeaderVar);
+  // ResizeObserver catches nav wrap / hamburger open/close without a scroll
+  if (window.ResizeObserver && _header) {
+    new ResizeObserver(updateHeaderVar).observe(_header);
+  }
+
   // === Mobile menu toggle ===
   var menuToggle = document.getElementById('menu-toggle');
   var mainNav = document.getElementById('main-nav');

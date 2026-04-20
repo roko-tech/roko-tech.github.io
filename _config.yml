@@ -8,7 +8,12 @@ defaults:
       path: ""
     values:
       image: /assets/og-default.png
-permalink: /:title/
+  # Only posts get the /:title/ permalink; pages keep their file path
+  - scope:
+      path: ""
+      type: "posts"
+    values:
+      permalink: /:title/
 lang: "ar"
 excerpt_separator: "\n\n\n"
 date_format: "%d-%m-%Y"

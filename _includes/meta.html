@@ -1,19 +1,19 @@
 {%- assign date_format = site.date_format | default: "%B %d, %Y" -%}
 {% if include.preview %}
 <header>
-  <h2 class="post-card-title"><a href="{{ include.post.url | relative_url }}">{{ include.post.title }}</a></h2>
-  <time class="post-card-date" datetime="{{ include.post.date | date_to_xmlschema }}">{{ include.post.date | date: date_format }}</time>
+  <h2 class="post-card-title p-name">{{ include.post.title }}</h2>
+  <time class="post-card-date dt-published" datetime="{{ include.post.date | date_to_xmlschema }}">{{ include.post.date | date: date_format }}</time>
 </header>
 {% else %}
 <header class="post-header">
-  <h1>{{ include.post.title }}</h1>
+  <h1 class="p-name">{{ include.post.title }}</h1>
   <div class="post-meta">
-    <time datetime="{{ include.post.date | date_to_xmlschema }}">{{ include.post.date | date: date_format }}</time>
+    <time class="dt-published" datetime="{{ include.post.date | date_to_xmlschema }}">{{ include.post.date | date: date_format }}</time>
     {% if include.post.last_modified_at %}
       {% assign mod_date = include.post.last_modified_at | date: date_format %}
       {% assign pub_date = include.post.date | date: date_format %}
       {% if mod_date != pub_date %}
-        <span class="last-updated">تم التحديث: {{ include.post.last_modified_at | date: date_format }}</span>
+        <span class="last-updated dt-updated" data-datetime="{{ include.post.last_modified_at | date_to_xmlschema }}">تم التحديث: {{ include.post.last_modified_at | date: date_format }}</span>
       {% endif %}
     {% endif %}
   </div>

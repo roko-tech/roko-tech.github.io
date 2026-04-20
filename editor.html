@@ -11,7 +11,8 @@ main#main-content { padding: 0 !important; animation: none !important; }
 
 .editor-container {
   display: flex;
-  height: calc(100dvh - 4rem);
+  /* --header-h is set by site.js; fall back to 4rem on first paint */
+  height: calc(100dvh - var(--header-h, 4rem));
   overflow: hidden;
 }
 
@@ -651,6 +652,19 @@ main#main-content { padding: 0 !important; animation: none !important; }
   </div>
 </div>
 
+<!-- Publish Preview Modal — full-width preview of the rendered post before committing -->
+<div class="modal-overlay" id="publish-preview-modal">
+  <div class="modal" style="max-width: 720px; width: 92%;" role="dialog" aria-modal="true" aria-labelledby="publish-preview-title">
+    <h3 id="publish-preview-title">معاينة المقالة قبل النشر</h3>
+    <div id="publish-preview-meta" style="font-size:0.8em;color:var(--text-secondary);margin-bottom:12px;"></div>
+    <div id="publish-preview-body" class="preview-content" dir="rtl" style="border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:var(--space-5);max-height:60vh;overflow-y:auto;margin-bottom:16px;"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-primary" data-modal-action="publish-confirm">متابعة النشر</button>
+      <button type="button" class="btn-secondary" data-modal-action="close" data-modal-target="publish-preview-modal">رجوع للتحرير</button>
+    </div>
+  </div>
+</div>
+
 <!-- Confirm Modal -->
 <div class="modal-overlay" id="confirm-modal">
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
@@ -759,6 +773,9 @@ main#main-content { padding: 0 !important; animation: none !important; }
   }
   function migrateLegacy() {
     var legacy = localStorage.getItem(LEGACY_KEY);
+    // Always drop the legacy key — stale copies from before multi-draft
+    // support shouldn't persist even if drafts already exist.
+    localStorage.removeItem(LEGACY_KEY);
     if (!legacy) return;
     var drafts = loadDrafts();
     if (!Object.keys(drafts).length) {
@@ -767,7 +784,6 @@ main#main-content { padding: 0 !important; animation: none !important; }
       saveDrafts(drafts);
       localStorage.setItem(CURRENT_KEY, id);
     }
-    localStorage.removeItem(LEGACY_KEY);
   }
   function renderDrafts() {
     var drafts = loadDrafts();
@@ -1273,6 +1289,30 @@ main#main-content { padding: 0 !important; animation: none !important; }
     return btoa(bin);
   }
 
+  // Retry-with-exponential-backoff for transient network + rate-limit failures.
+  // Retries 5xx and 429. 4xx (except 429) fail fast since they're permanent.
+  function fetchRetry(url, opts, attempts) {
+    attempts = attempts == null ? 3 : attempts;
+    return fetch(url, opts).then(function (res) {
+      var retry = res.status === 429 || (res.status >= 500 && res.status < 600);
+      if (retry && attempts > 1) {
+        var delay = 500 * Math.pow(2, 3 - attempts); // 500, 1000, 2000 ms
+        return new Promise(function (r) { setTimeout(r, delay); }).then(function () {
+          return fetchRetry(url, opts, attempts - 1);
+        });
+      }
+      return res;
+    }).catch(function (err) {
+      if (attempts > 1) {
+        var delay = 500 * Math.pow(2, 3 - attempts);
+        return new Promise(function (r) { setTimeout(r, delay); }).then(function () {
+          return fetchRetry(url, opts, attempts - 1);
+        });
+      }
+      throw err;
+    });
+  }
+
   function uploadImageToGitHub(file, alt, token) {
     showToast('جارٍ رفع الصورة...');
     var reader = new FileReader();
@@ -1284,7 +1324,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
       var base = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9-]/g, '-').replace(/-+/g, '-').slice(0, 40) || 'image';
       var path = 'assets/uploads/' + dateStr + '-' + base + '-' + Math.random().toString(36).slice(2, 7) + ext;
 
-      fetch('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(path), {
+      fetchRetry('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(path), {
         method: 'PUT',
         headers: {
           'Authorization': 'Bearer ' + token,
@@ -1371,7 +1411,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
         var base = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9-]/g, '-').replace(/-+/g, '-').slice(0, 40) || 'image';
         var path = 'assets/uploads/' + dateStr + '-' + base + '-' + Math.random().toString(36).slice(2, 7) + ext;
 
-        fetch('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(path), {
+        fetchRetry('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(path), {
           method: 'PUT',
           headers: {
             'Authorization': 'Bearer ' + token,
@@ -1591,6 +1631,35 @@ main#main-content { padding: 0 !important; animation: none !important; }
     var tags = parseTags(document.getElementById('publish-tags').value);
     var customSlug = document.getElementById('publish-slug').value.trim();
 
+    // Show preview first. Actual commit happens in confirmPublish() after
+    // the user clicks "متابعة النشر" in the preview modal.
+    var previewBody = document.getElementById('publish-preview-body');
+    var previewMeta = document.getElementById('publish-preview-meta');
+    var rendered = marked.parse(content);
+    if (typeof DOMPurify !== 'undefined') rendered = DOMPurify.sanitize(rendered, { ADD_ATTR: ['target', 'rel'] });
+    previewBody.innerHTML = '<h1 style="font-size:1.8em;margin:0 0 0.6em;">' + (title.replace(/</g, '&lt;')) + '</h1>' + rendered;
+    if (typeof Prism !== 'undefined') previewBody.querySelectorAll('pre code').forEach(function (el) { Prism.highlightElement(el); });
+    var metaParts = [];
+    if (desc) metaParts.push('الوصف: ' + desc);
+    if (tags.length) metaParts.push('الوسوم: ' + tags.join('، '));
+    if (customSlug) metaParts.push('slug: ' + customSlug);
+    if (excerpt) metaParts.push('الملخص: ' + excerpt);
+    previewMeta.textContent = metaParts.join(' • ') || 'بدون وصف/وسوم';
+    closeModal('publish-modal');
+    openModal('publish-preview-modal');
+
+    // Stash the resolved metadata on the window so confirmPublish can pick it up
+    window.__pendingPublish = { title: title, desc: desc, excerpt: excerpt, tags: tags, customSlug: customSlug, content: content, token: token };
+  }
+
+  function confirmPublish() {
+    var p = window.__pendingPublish;
+    if (!p) { showToast('لا توجد مقالة معلّقة للنشر', 'error'); return; }
+    window.__pendingPublish = null;
+    closeModal('publish-preview-modal');
+    openModal('publish-modal');
+
+    var title = p.title, desc = p.desc, excerpt = p.excerpt, tags = p.tags, customSlug = p.customSlug, content = p.content, token = p.token;
     var btn = document.getElementById('publish-btn');
     btn.disabled = true;
     btn.textContent = 'جارٍ النشر...';
@@ -1607,7 +1676,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
 
     function attempt(slug, tries) {
       var filename = '_posts/' + dateStr + '-' + slug + '.md';
-      fetch('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(filename), { headers: apiHeaders })
+      fetchRetry('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(filename), { headers: apiHeaders })
         .then(function (res) {
           if (res.status === 404) return create(filename, slug);
           if (res.ok) {
@@ -1623,7 +1692,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
       var permalink = '/' + finalSlug + '/';
       var fullContent = buildFrontMatter({ title: title, description: desc, excerpt: excerpt, tags: tags, permalink: permalink }) + content;
       var contentB64 = utf8ToBase64(fullContent);
-      fetch('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(filename), {
+      fetchRetry('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(filename), {
         method: 'PUT',
         headers: Object.assign({ 'Content-Type': 'application/json' }, apiHeaders),
         body: JSON.stringify({ message: 'نشر مقالة: ' + title, content: contentB64 })
@@ -1678,13 +1747,39 @@ main#main-content { padding: 0 !important; animation: none !important; }
     if (!action) return;
     switch (action.dataset.modalAction) {
       case 'publish': publishPost(); break;
+      case 'publish-confirm': confirmPublish(); break;
       case 'save-settings': saveSettings(); break;
       case 'remove-token': removeToken(); break;
       case 'close': closeModal(action.dataset.modalTarget); break;
     }
   });
 
+  // === Clipboard paste for images ===
+  // Cmd/Ctrl+V with a screenshot in the clipboard triggers the upload flow
+  input.addEventListener('paste', function (e) {
+    if (!e.clipboardData || !e.clipboardData.items) return;
+    var imgItems = Array.prototype.filter.call(e.clipboardData.items, function (it) { return it.kind === 'file' && it.type.startsWith('image/'); });
+    if (!imgItems.length) return;
+    e.preventDefault();
+    savedSelection = { start: input.selectionStart, end: input.selectionEnd };
+    var token = sessionStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      showToast('يتطلب لصق الصور GitHub Token — استخدم الإعدادات', 'error');
+      openModal('settings-modal');
+      updateTokenStatus();
+      return;
+    }
+    imgItems.forEach(function (it) {
+      var file = it.getAsFile();
+      if (file) uploadImageToGitHubAsync(file, 'صورة', token).catch(function (err) {
+        showToast('خطأ في لصق الصورة: ' + err.message, 'error');
+      });
+    });
+  });
+
   // === Init ===
+  // Add aria-hidden to decorative toolbar SVGs so labeled buttons don't double-announce
+  document.querySelectorAll('.editor-toolbar button svg, .mobile-tabs button svg, #btn-new-draft svg').forEach(function (s) { s.setAttribute('aria-hidden', 'true'); });
   // Sidebar starts collapsed on mobile, expanded on desktop
   if (window.innerWidth <= 768) sidebar.classList.add('collapsed');
   loadInitial();

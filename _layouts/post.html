@@ -2,7 +2,9 @@
 layout: default
 ---
 
-<article>
+<article class="h-entry">
+  <data class="p-author h-card" value="{{ site.author }}"></data>
+  <a class="u-url" href="{{ page.url | absolute_url }}" hidden>{{ page.title }}</a>
   {% include meta.html post=page %}
   {% assign words = content | number_of_words %}
   {% assign minutes = words | divided_by: 200 %}
@@ -47,7 +49,9 @@ layout: default
   </details>
   {% endif %}
 
+  <div class="e-content">
   {{ content }}
+  </div>
 
   <div class="post-tags">
     {% for tag in page.tags %}
