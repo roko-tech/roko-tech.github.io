@@ -183,16 +183,17 @@
   color: var(--text-secondary)
   font-size: 0.9em
 
+// Metadata pill for "updated on" — distinct from tag pills (info tone, not category)
 .last-updated
   display: inline-flex
   align-items: center
   gap: var(--space-1)
-  background: var(--tag-bg)
-  color: var(--accent)
+  background: var(--bg-elevated)
+  color: var(--text-secondary)
   font-size: 0.85em
   padding: 0.2em 0.6em
-  border-radius: 9999px
-  border: 1px solid var(--tag-border)
+  border-radius: var(--radius-sm)
+  border: 1px solid var(--border-subtle)
 
 // Pagination
 .pagination

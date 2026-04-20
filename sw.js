@@ -35,7 +35,7 @@ self.addEventListener('fetch', function (e) {
   if (url.origin !== location.origin) return;
   if (url.pathname === '/sw.js') return;
   // Editor needs fresh state each visit
-  if (url.pathname === '/editor.html' || url.pathname === '/editor/') return;
+  if (url.pathname === '/editor.html') return;
 
   var accept = req.headers.get('accept') || '';
   var isHtml = accept.indexOf('text/html') !== -1;

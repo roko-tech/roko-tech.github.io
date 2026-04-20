@@ -1,0 +1,76 @@
+name: Update post last_modified_at
+
+# Runs after any push to master that touched a post. Reads the files
+# changed in the latest commit, stamps them with today's date in the
+# local timezone (Asia/Riyadh), and commits the result back. The commit
+# message ends with [skip-last-mod] so this workflow doesn't loop on
+# its own pushes.
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '_posts/**'
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    # Skip if this push is already our own update commit, or if the
+    # commit message explicitly asks us to stay out.
+    if: >-
+      !contains(github.event.head_commit.message, '[skip-last-mod]') &&
+      github.event.head_commit.author.email != '41898282+github-actions[bot]@users.noreply.github.com'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Stamp last_modified_at on changed posts
+        env:
+          TZ: Asia/Riyadh
+        run: |
+          today=$(date +%Y-%m-%d)
+          changed=$(git diff --name-only HEAD^ HEAD -- '_posts/*.md' || true)
+          if [ -z "$changed" ]; then
+            echo "No post files changed in this commit, nothing to do."
+            exit 0
+          fi
+          for f in $changed; do
+            [ -f "$f" ] || continue
+            # Respect opt-out: if front matter contains `manual_date: true`,
+            # leave last_modified_at alone.
+            if grep -qE '^manual_date:[[:space:]]*true' "$f"; then
+              echo "Skipping $f (manual_date: true)"
+              continue
+            fi
+            if grep -qE '^last_modified_at:' "$f"; then
+              # Replace existing value
+              sed -i -E "s|^last_modified_at:.*|last_modified_at: $today|" "$f"
+            else
+              # Insert right after the opening `---` line
+              awk -v d="last_modified_at: $today" '
+                BEGIN { inserted = 0 }
+                NR == 1 && /^---$/ { print; next }
+                !inserted && /^---$/ { print d; print; inserted = 1; next }
+                { print }
+              ' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+            fi
+            echo "Stamped $f -> $today"
+          done
+
+      - name: Commit if anything changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add _posts/
+          if git diff --staged --quiet; then
+            echo "No last_modified_at changes to commit."
+          else
+            git commit -m "Auto-update last_modified_at [skip-last-mod]"
+            git push
+          fi

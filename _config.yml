@@ -28,7 +28,7 @@ back_to_top_text: "العودة للأعلى"
 
 # Menu
 
-navigation:                # accepts {file, title, url, icon, sidebaricon}
+navigation:                # accepts {file, title} or {url, title}
   - {file: "index.html", title: "الرئيسية"}
   - {file: "archive.html", title: "الأرشيف"}
   - {file: "editor.html", title: "المحرر"}

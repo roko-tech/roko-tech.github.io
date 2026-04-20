@@ -230,12 +230,13 @@ main#main-content { padding: 0 !important; animation: none !important; }
 .autosave-indicator {
   color: var(--accent);
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s, color 0.2s;
   text-transform: none;
   letter-spacing: 0;
   flex-shrink: 0;
 }
 .autosave-indicator.visible { opacity: 1; }
+.autosave-indicator.error { color: #ef4444; opacity: 1 !important; font-weight: 600; }
 
 /* Textarea */
 #md-input {
@@ -686,6 +687,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" integrity="sha384-wFjoQjtV1y5jVHbt0p35Ui8aV8GVpEZkyF99OXWqP/eNJDU93D3Ugxkoyh6Y2I4A" crossorigin="anonymous" referrerpolicy="no-referrer">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js" integrity="sha384-06z5D//U/xpvxZHuUz92xBvq3DqBBFi7Up53HRrbV7Jlv7Yvh/MZ7oenfUe9iCEt" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js" integrity="sha384-Uq05+JLko69eOiPr39ta9bh7kld5PKZoU+fF7g0EXTAriEollhZ+DrN8Q/Oi8J2Q" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.2.1/turndown.min.js" integrity="sha384-HJ5HEeMp8mUyP3rNRTMurw70EDxoPixtQ78PiXe3MMuk18YCV6VKnDTFhQnt8nMw" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 
 <script>
 (function() {
@@ -897,10 +899,16 @@ main#main-content { padding: 0 !important; animation: none !important; }
       drafts[currentDraftId].content = input.value;
       drafts[currentDraftId].updatedAt = Date.now();
       saveDrafts(drafts);
+      // Recovered from a previous failure — show success and drop the error state
+      saveIndicator.classList.remove('error');
+      saveIndicator.textContent = 'تم الحفظ';
       saveIndicator.classList.add('visible');
       setTimeout(function () { saveIndicator.classList.remove('visible'); }, 2000);
     } catch (e) {
-      showToast('تعذر الحفظ: ' + (e.message || 'خطأ'), 'error');
+      // Likely QuotaExceededError or similar — surface permanently until next success
+      saveIndicator.classList.add('error', 'visible');
+      saveIndicator.textContent = 'تعذر الحفظ — المساحة ممتلئة';
+      showToast('تعذر الحفظ: ' + (e.message || 'المساحة ممتلئة. احذف مسودات قديمة.'), 'error');
     }
   }
   function loadInitial() {
@@ -1223,13 +1231,10 @@ main#main-content { padding: 0 !important; animation: none !important; }
       }
     }
     else if (e.key === 'Tab' && e.shiftKey) {
-      // Shift+Tab → dedent (remove leading 2 spaces from each selected line)
+      // Shift+Tab → dedent up to 2 leading spaces on each selected line
       var s2 = input.selectionStart, en2 = input.selectionEnd;
       if (en2 > s2 && input.value.substring(s2, en2).indexOf('\n') !== -1) {
         e.preventDefault();
-        prefixLines('  ');  // prefixLines toggles off when all lines start with '  '
-        // Actually toggle may not trigger if some lines don't have it; do a straight dedent:
-        // Simpler: strip up to 2 leading spaces from each selected line
         var text = input.value;
         var lineStart = text.lastIndexOf('\n', s2 - 1) + 1;
         var lineEnd = text.indexOf('\n', en2 - 1);
@@ -1338,7 +1343,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
         return res.json();
       }).then(function () {
         var url = '/' + path;
-        replaceSavedSelection('![' + alt + '](' + url + ')');
+        replaceSavedSelection('![' + alt + '](' + url + ')\n');
         renderPreview();
         scheduleAutoSave();
         showToast('تم رفع الصورة إلى GitHub', 'success');
@@ -1754,34 +1759,72 @@ main#main-content { padding: 0 !important; animation: none !important; }
     }
   });
 
-  // === Clipboard paste for images ===
-  // Cmd/Ctrl+V with a screenshot in the clipboard triggers the upload flow
+  // === Clipboard paste: images upload, rich HTML → Markdown via Turndown ===
   input.addEventListener('paste', function (e) {
-    if (!e.clipboardData || !e.clipboardData.items) return;
-    var imgItems = Array.prototype.filter.call(e.clipboardData.items, function (it) { return it.kind === 'file' && it.type.startsWith('image/'); });
-    if (!imgItems.length) return;
-    e.preventDefault();
-    savedSelection = { start: input.selectionStart, end: input.selectionEnd };
-    var token = sessionStorage.getItem(TOKEN_KEY);
-    if (!token) {
-      showToast('يتطلب لصق الصور GitHub Token — استخدم الإعدادات', 'error');
-      openModal('settings-modal');
-      updateTokenStatus();
+    if (!e.clipboardData) return;
+
+    // 1) Image clipboard items take priority (screenshots from Snipping Tool, browser copy-image)
+    var imgItems = e.clipboardData.items
+      ? Array.prototype.filter.call(e.clipboardData.items, function (it) { return it.kind === 'file' && it.type.startsWith('image/'); })
+      : [];
+    if (imgItems.length) {
+      e.preventDefault();
+      savedSelection = { start: input.selectionStart, end: input.selectionEnd };
+      var token = sessionStorage.getItem(TOKEN_KEY);
+      if (!token) {
+        showToast('يتطلب لصق الصور GitHub Token — استخدم الإعدادات', 'error');
+        openModal('settings-modal');
+        updateTokenStatus();
+        return;
+      }
+      imgItems.forEach(function (it) {
+        var file = it.getAsFile();
+        if (file) uploadImageToGitHubAsync(file, 'صورة', token).catch(function (err) {
+          showToast('خطأ في لصق الصورة: ' + err.message, 'error');
+        });
+      });
       return;
     }
-    imgItems.forEach(function (it) {
-      var file = it.getAsFile();
-      if (file) uploadImageToGitHubAsync(file, 'صورة', token).catch(function (err) {
-        showToast('خطأ في لصق الصورة: ' + err.message, 'error');
-      });
-    });
+
+    // 2) Rich HTML (from docs, websites, Notion) → convert to Markdown with Turndown
+    var html = e.clipboardData.getData('text/html');
+    if (html && html.trim() && typeof TurndownService !== 'undefined') {
+      // Sanitize first so the converter doesn't ingest <script> etc.
+      var safeHtml = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(html, { ADD_ATTR: ['target', 'rel'] }) : html;
+      try {
+        var td = new TurndownService({
+          headingStyle: 'atx',
+          codeBlockStyle: 'fenced',
+          bulletListMarker: '-',
+          emDelimiter: '*'
+        });
+        // Preserve line breaks and keep images as Markdown
+        td.addRule('strikethrough', { filter: ['del', 's', 'strike'], replacement: function (c) { return '~~' + c + '~~'; } });
+        var md = td.turndown(safeHtml).trim();
+        if (md) {
+          e.preventDefault();
+          insertAtCursor(md);
+          renderPreview();
+          scheduleAutoSave();
+          showToast('تم لصق المحتوى كـ Markdown', 'success');
+          return;
+        }
+      } catch (err) { /* fall through to default paste of text/plain */ }
+    }
+    // 3) Default browser paste handles text/plain fine
   });
 
   // === Init ===
   // Add aria-hidden to decorative toolbar SVGs so labeled buttons don't double-announce
   document.querySelectorAll('.editor-toolbar button svg, .mobile-tabs button svg, #btn-new-draft svg').forEach(function (s) { s.setAttribute('aria-hidden', 'true'); });
-  // Sidebar starts collapsed on mobile, expanded on desktop
-  if (window.innerWidth <= 768) sidebar.classList.add('collapsed');
+  // Sidebar collapses on mobile, expands on desktop — sync on resize/rotate too
+  var mqMobile = window.matchMedia('(max-width: 768px)');
+  function syncSidebar() {
+    if (mqMobile.matches) sidebar.classList.add('collapsed');
+    else sidebar.classList.remove('collapsed');
+  }
+  syncSidebar();
+  if (mqMobile.addEventListener) mqMobile.addEventListener('change', syncSidebar);
   loadInitial();
   updatePublishVisibility();
 })();

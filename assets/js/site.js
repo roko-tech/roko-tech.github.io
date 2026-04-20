@@ -123,7 +123,9 @@
   var lb = document.getElementById('lightbox');
   var lbi = document.getElementById('lightbox-img');
   if (lb && lbi) {
-    var images = Array.prototype.slice.call(document.querySelectorAll('article img:not(.icono)'));
+    // Skip images explicitly marked decorative (alt="")
+    var images = Array.prototype.slice.call(document.querySelectorAll('article img:not(.icono)'))
+      .filter(function (img) { return img.getAttribute('alt') !== ''; });
     var currentIdx = -1;
     var show = function (idx) {
       if (idx < 0 || idx >= images.length) return;
@@ -187,15 +189,8 @@
     }
   }
 
-  // Normalize the reading-time text once so the subsequent dynamic updates are consistent
-  if (readingTime) {
-    var rawMin = parseInt(readingTime.textContent, 10);
-    if (!isNaN(rawMin)) {
-      readingTime.textContent = rawMin === 1 ? 'دقيقة واحدة للقراءة'
-        : rawMin === 2 ? 'دقيقتان للقراءة'
-        : rawMin + ' ' + arabicMinutes(rawMin) + ' للقراءة';
-    }
-  }
+  // The Arabic phrase is rendered server-side (post.html); we just need the minute
+  // count preserved for the scroll-driven "متبقية" updates below.
 
   function onScroll() {
     var y = window.scrollY;
@@ -225,9 +220,11 @@
   }
 
   if (readingTime) {
-    // Preserve the original total so onScroll can use it without parsing the live text
-    var origTotal = parseInt(readingTime.textContent, 10);
-    if (!isNaN(origTotal)) readingTime.dataset.totalMin = origTotal;
+    // data-total-min is set by the Liquid template; keep a text parse as a fallback
+    if (!readingTime.dataset.totalMin) {
+      var origTotal = parseInt(readingTime.textContent, 10);
+      if (!isNaN(origTotal)) readingTime.dataset.totalMin = origTotal;
+    }
     measureContent();
     window.addEventListener('resize', measureContent, { passive: true });
     window.addEventListener('load', measureContent);
