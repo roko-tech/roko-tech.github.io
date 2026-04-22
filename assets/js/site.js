@@ -16,6 +16,9 @@
     themeToggle.addEventListener('click', function () {
       var current = document.documentElement.getAttribute('data-theme') || 'dark';
       applyTheme(current === 'light' ? 'dark' : 'light', true);
+      // Pulse animation on the icon for feedback
+      themeToggle.classList.add('pulsing');
+      setTimeout(function () { themeToggle.classList.remove('pulsing'); }, 500);
     });
   }
 
@@ -60,6 +63,18 @@
       img.classList.add('img-loading');
       img.addEventListener('load', function () { img.classList.remove('img-loading'); }, { once: true });
       img.addEventListener('error', function () { img.classList.remove('img-loading'); }, { once: true });
+    }
+  });
+
+  // === Language labels on code blocks ===
+  // Rouge wraps fenced code in <div class="language-X highlighter-rouge"><pre class="highlight">…</pre></div>
+  // Lift the language into a data-lang attribute on <pre> so CSS can render it as a pill.
+  document.querySelectorAll('div[class*="language-"] > .highlight > pre, div[class*="language-"] > pre').forEach(function (pre) {
+    var wrap = pre.closest('div[class*="language-"]');
+    if (!wrap) return;
+    var m = wrap.className.match(/language-([^\s]+)/);
+    if (m && m[1] && m[1] !== 'plaintext' && m[1] !== 'text') {
+      pre.setAttribute('data-lang', m[1]);
     }
   });
 
@@ -230,6 +245,64 @@
     window.addEventListener('load', measureContent);
   }
   window.addEventListener('scroll', onScroll, { passive: true });
+
+  // === TOC scroll-spy — highlights the current section ===
+  var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.toc a[href^="#"]'));
+  if (tocLinks.length && 'IntersectionObserver' in window) {
+    var tocMap = {};
+    tocLinks.forEach(function (a) {
+      var id = a.getAttribute('href').slice(1);
+      tocMap[decodeURIComponent(id)] = a;
+    });
+    var tocSpy = new IntersectionObserver(function (entries) {
+      // Pick the last entry whose intersection is the closest to the top band
+      var visible = entries.filter(function (e) { return e.isIntersecting; });
+      if (!visible.length) return;
+      var top = visible.reduce(function (a, b) {
+        return a.boundingClientRect.top < b.boundingClientRect.top ? a : b;
+      });
+      var a = tocMap[top.target.id];
+      if (!a) return;
+      tocLinks.forEach(function (l) { l.classList.remove('toc-active'); });
+      a.classList.add('toc-active');
+    }, { rootMargin: '-20% 0px -65% 0px', threshold: 0 });
+    Object.keys(tocMap).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) tocSpy.observe(el);
+    });
+  }
+
+  // === Blob parallax — nudges the ambient background as the user scrolls ===
+  var blobBg = document.querySelector('.blob-bg');
+  if (blobBg && !reducedMotion) {
+    var blobRaf = null;
+    window.addEventListener('scroll', function () {
+      if (blobRaf) return;
+      blobRaf = requestAnimationFrame(function () {
+        blobBg.style.transform = 'translate3d(0, ' + (window.scrollY * -0.08) + 'px, 0)';
+        blobRaf = null;
+      });
+    }, { passive: true });
+  }
+
+  // === Giscus skeleton fade-out when the comments iframe loads ===
+  var giscusSkeleton = document.querySelector('.giscus-skeleton');
+  if (giscusSkeleton) {
+    var hideSkeleton = function () {
+      giscusSkeleton.classList.add('hidden');
+      setTimeout(function () { if (giscusSkeleton.parentNode) giscusSkeleton.parentNode.removeChild(giscusSkeleton); }, 400);
+    };
+    var sObserver = new MutationObserver(function () {
+      var iframe = document.querySelector('iframe.giscus-frame');
+      if (!iframe) return;
+      sObserver.disconnect();
+      if (iframe.contentDocument && iframe.contentDocument.readyState === 'complete') hideSkeleton();
+      else iframe.addEventListener('load', hideSkeleton, { once: true });
+    });
+    sObserver.observe(document.body, { childList: true, subtree: true });
+    // Hard fallback: never leave the skeleton up for more than 10s
+    setTimeout(function () { if (giscusSkeleton.parentNode) hideSkeleton(); }, 10000);
+  }
 
   // === Heading & image fade-in on scroll ===
   if (!reducedMotion) {

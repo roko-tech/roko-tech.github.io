@@ -71,19 +71,54 @@ article header h1
     color: var(--text-primary)
     background: rgba(255, 255, 255, 0.05)
 
+// Theme-icon cross-fade. Both icons stack in the same cell;
+// the hidden one animates its opacity and rotation away.
+.theme-toggle
+  position: relative
+.theme-icon-sun, .theme-icon-moon
+  transition: opacity 0.3s ease, transform 0.3s ease
+  transform-origin: center
 .theme-icon-moon
-  display: none
-
+  position: absolute
+  top: 50%
+  inset-inline-start: 50%
+  transform: translate(50%, -50%) rotate(-90deg)
+  opacity: 0
+  pointer-events: none
 [data-theme="light"] .theme-icon-sun
-  display: none
-
+  transform: rotate(90deg)
+  opacity: 0
+  pointer-events: none
 [data-theme="light"] .theme-icon-moon
-  display: block
+  position: absolute
+  top: 50%
+  inset-inline-start: 50%
+  transform: translate(50%, -50%) rotate(0)
+  opacity: 1
+  pointer-events: auto
+
+// Bounce tick when the user toggles — the JS briefly adds .pulsing
+.theme-toggle.pulsing svg
+  animation: theme-pulse 0.5s ease
+
+@keyframes theme-pulse
+  0%
+    transform: scale(1)
+  50%
+    transform: scale(1.2)
+  100%
+    transform: scale(1)
+
+@media (prefers-reduced-motion: reduce)
+  .theme-icon-sun, .theme-icon-moon
+    transition: none
+  .theme-toggle.pulsing svg
+    animation: none
 
 [data-theme="light"] .theme-toggle:hover
   background: rgba(0, 0, 0, 0.05)
 
-// Hamburger toggle
+// Hamburger toggle (morphs into X when nav is open)
 .menu-toggle
   display: none
   background: none
@@ -98,6 +133,24 @@ article header h1
   &:hover
     color: var(--text-primary)
     background: rgba(255, 255, 255, 0.05)
+
+.menu-toggle svg line
+  transition: transform 0.25s ease, opacity 0.2s ease
+  transform-origin: 12px 12px
+  transform-box: fill-box
+
+.menu-toggle[aria-expanded="true"] svg line:nth-child(1)
+  transform: translateY(6px) rotate(45deg)
+
+.menu-toggle[aria-expanded="true"] svg line:nth-child(2)
+  opacity: 0
+
+.menu-toggle[aria-expanded="true"] svg line:nth-child(3)
+  transform: translateY(-6px) rotate(-45deg)
+
+@media (prefers-reduced-motion: reduce)
+  .menu-toggle svg line
+    transition: none
 
 nav
   display: flex

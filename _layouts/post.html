@@ -84,6 +84,11 @@ layout: default
   {%- comment -%}Posts can opt out via `comments: false` in front matter{%- endcomment -%}
   {% if site.comments.giscus and page.comments != false %}
     <hr>
+    <div class="giscus-skeleton" aria-hidden="true">
+      <div class="sk-block"></div>
+      <div class="sk-block sk-comment"></div>
+      <div class="sk-block sk-comment"></div>
+    </div>
     <script src="https://giscus.app/client.js"
       data-repo="{{ site.comments.giscus_repo }}"
       data-repo-id="{{ site.comments.giscus_repo_id }}"
@@ -127,8 +132,24 @@ layout: default
 
 {% if site.show_related %}
   <footer class="related">
-    <div class="previous">{% if page.previous.url %}<span>المقالة السابقة</span><a href="{{ page.previous.url | relative_url }}">{{ page.previous.title }}</a>{% endif %}</div>
-    <div class="next">{% if page.next.url %}<span>المقالة التالية</span><a href="{{ page.next.url | relative_url }}">{{ page.next.title }}</a>{% endif %}</div>
+    {% if page.previous.url %}
+      <a class="related-card previous" href="{{ page.previous.url | relative_url }}">
+        <span class="related-label">المقالة السابقة</span>
+        <span class="related-title">{{ page.previous.title }}</span>
+        <span class="related-excerpt">{{ page.previous.excerpt | strip_html | truncatewords: 18 }}</span>
+      </a>
+    {% else %}
+      <span class="related-card empty" aria-hidden="true"></span>
+    {% endif %}
+    {% if page.next.url %}
+      <a class="related-card next" href="{{ page.next.url | relative_url }}">
+        <span class="related-label">المقالة التالية</span>
+        <span class="related-title">{{ page.next.title }}</span>
+        <span class="related-excerpt">{{ page.next.excerpt | strip_html | truncatewords: 18 }}</span>
+      </a>
+    {% else %}
+      <span class="related-card empty" aria-hidden="true"></span>
+    {% endif %}
   </footer>
 {% endif %}
 
