@@ -74,7 +74,7 @@
   </div>
 </header>
 
-{% if page.url == "/" %}
+{% if page.url == "/" or page.layout == "post" or page.layout == "tagpage" %}
 <div class="blob-bg" aria-hidden="true">
   <svg viewBox="0 0 800 600" preserveAspectRatio="xMidYMid slice">
     <defs>
