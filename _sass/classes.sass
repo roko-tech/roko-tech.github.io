@@ -481,38 +481,6 @@ pre[data-lang]
   display: inline-block
   flex-shrink: 0
 
-// Justify toggle button
-.justify-toggle
-  background: transparent
-  border: 1px solid var(--border-subtle)
-  color: var(--text-tertiary)
-  cursor: pointer
-  padding: 2px 8px
-  border-radius: var(--radius-sm)
-  font-size: 0.8em
-  display: inline-flex
-  align-items: center
-  gap: 4px
-  transition: color 0.2s, border-color 0.2s, background 0.2s
-  &:hover
-    color: var(--text-primary)
-    border-color: var(--border-hover)
-    background: var(--bg-surface-hover)
-  &[aria-pressed="true"]
-    color: var(--accent)
-    border-color: var(--accent)
-  svg
-    width: 14px
-    height: 14px
-
-// Target paragraphs and list items directly — `p { text-align: start }`
-// in basic.sass has higher specificity than container-level text-align.
-article .e-content.justify,
-article .e-content.justify p,
-article .e-content.justify li,
-article .e-content.justify td
-  text-align: justify
-  text-justify: inter-word
 
 // Related (prev/next) — mini cards
 .related

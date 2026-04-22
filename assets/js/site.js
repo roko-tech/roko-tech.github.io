@@ -336,24 +336,6 @@
     });
   });
 
-  // === Justify toggle for the post body ===
-  var justifyBtn = document.getElementById('justify-toggle');
-  var econtent = document.querySelector('article .e-content');
-  if (justifyBtn && econtent) {
-    var JUSTIFY_KEY = 'text-justify';
-    var applyJustify = function (on) {
-      econtent.classList.toggle('justify', on);
-      justifyBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
-      var label = justifyBtn.querySelector('span');
-      if (label) label.textContent = on ? 'طبيعي' : 'ضبط';
-    };
-    applyJustify(localStorage.getItem(JUSTIFY_KEY) === 'justify');
-    justifyBtn.addEventListener('click', function () {
-      var on = !econtent.classList.contains('justify');
-      applyJustify(on);
-      localStorage.setItem(JUSTIFY_KEY, on ? 'justify' : 'start');
-    });
-  }
 
   // === Register service worker ===
   if ('serviceWorker' in navigator) {
