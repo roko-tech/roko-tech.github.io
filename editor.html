@@ -1814,6 +1814,28 @@ main#main-content { padding: 0 !important; animation: none !important; }
     // 3) Default browser paste handles text/plain fine
   });
 
+  // === Scroll-sync: editor textarea ↔ preview pane (proportional) ===
+  // When the user scrolls one pane, the other follows at the same percent
+  // position. A reentrancy flag cleared on the next frame prevents the
+  // feedback loop that would otherwise fire when we programmatically
+  // assign scrollTop on the opposite pane.
+  var _syncingScroll = false;
+  function _makeScrollSync(src, dst) {
+    return function () {
+      if (_syncingScroll) return;
+      // Skip when either pane is hidden (mobile tab mode uses display:none)
+      if (src.offsetParent === null || dst.offsetParent === null) return;
+      var srcMax = src.scrollHeight - src.clientHeight;
+      var dstMax = dst.scrollHeight - dst.clientHeight;
+      if (srcMax <= 0 || dstMax <= 0) return;
+      _syncingScroll = true;
+      dst.scrollTop = (src.scrollTop / srcMax) * dstMax;
+      requestAnimationFrame(function () { _syncingScroll = false; });
+    };
+  }
+  input.addEventListener('scroll', _makeScrollSync(input, preview), { passive: true });
+  preview.addEventListener('scroll', _makeScrollSync(preview, input), { passive: true });
+
   // === Init ===
   // Add aria-hidden to decorative toolbar SVGs so labeled buttons don't double-announce
   document.querySelectorAll('.editor-toolbar button svg, .mobile-tabs button svg, #btn-new-draft svg').forEach(function (s) { s.setAttribute('aria-hidden', 'true'); });
