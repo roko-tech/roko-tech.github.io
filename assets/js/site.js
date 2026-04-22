@@ -209,19 +209,21 @@
     if (btt) btt.classList.toggle('visible', y > 400);
     if (siteHeader) siteHeader.classList.toggle('scrolled', y > 50);
 
-    var progress = 0;
-    if (contentRoot && contentHeight > 0) {
-      var scrolled = Math.max(0, Math.min(contentHeight, y - contentTop));
-      progress = scrolled / contentHeight;
-    } else {
+    // BTT progress ring tracks the *whole page* so it fills at the actual
+    // bottom, not when the reading content ends.
+    if (bttProgress) {
       var docH = document.documentElement.scrollHeight - window.innerHeight;
-      progress = docH > 0 ? y / docH : 0;
+      var docProg = docH > 0 ? Math.min(1, Math.max(0, y / docH)) : 0;
+      bttProgress.style.strokeDashoffset = ringLen - (ringLen * docProg);
     }
-    if (bttProgress) bttProgress.style.strokeDashoffset = ringLen - (ringLen * progress);
 
+    // "Minutes remaining" text stays tied to reading content (end marker is
+    // share-buttons/post-tags/hr — before comments and related cards).
     if (readingTime && contentRoot && contentHeight > 0) {
       var totalMin = parseInt(readingTime.dataset.totalMin || '0', 10);
       if (totalMin > 0) {
+        var scrolled = Math.max(0, Math.min(contentHeight, y - contentTop));
+        var progress = scrolled / contentHeight;
         if (progress >= 0.98) readingTime.textContent = 'تمت القراءة';
         else {
           var remaining = Math.max(1, Math.ceil(totalMin * (1 - progress)));
