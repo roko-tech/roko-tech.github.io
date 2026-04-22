@@ -16,9 +16,6 @@
     themeToggle.addEventListener('click', function () {
       var current = document.documentElement.getAttribute('data-theme') || 'dark';
       applyTheme(current === 'light' ? 'dark' : 'light', true);
-      // Pulse animation on the icon for feedback
-      themeToggle.classList.add('pulsing');
-      setTimeout(function () { themeToggle.classList.remove('pulsing'); }, 500);
     });
   }
 
@@ -245,45 +242,6 @@
     window.addEventListener('load', measureContent);
   }
   window.addEventListener('scroll', onScroll, { passive: true });
-
-  // === TOC scroll-spy — highlights the current section ===
-  var tocLinks = Array.prototype.slice.call(document.querySelectorAll('.toc a[href^="#"]'));
-  if (tocLinks.length && 'IntersectionObserver' in window) {
-    var tocMap = {};
-    tocLinks.forEach(function (a) {
-      var id = a.getAttribute('href').slice(1);
-      tocMap[decodeURIComponent(id)] = a;
-    });
-    var tocSpy = new IntersectionObserver(function (entries) {
-      // Pick the last entry whose intersection is the closest to the top band
-      var visible = entries.filter(function (e) { return e.isIntersecting; });
-      if (!visible.length) return;
-      var top = visible.reduce(function (a, b) {
-        return a.boundingClientRect.top < b.boundingClientRect.top ? a : b;
-      });
-      var a = tocMap[top.target.id];
-      if (!a) return;
-      tocLinks.forEach(function (l) { l.classList.remove('toc-active'); });
-      a.classList.add('toc-active');
-    }, { rootMargin: '-20% 0px -65% 0px', threshold: 0 });
-    Object.keys(tocMap).forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el) tocSpy.observe(el);
-    });
-  }
-
-  // === Blob parallax — nudges the ambient background as the user scrolls ===
-  var blobBg = document.querySelector('.blob-bg');
-  if (blobBg && !reducedMotion) {
-    var blobRaf = null;
-    window.addEventListener('scroll', function () {
-      if (blobRaf) return;
-      blobRaf = requestAnimationFrame(function () {
-        blobBg.style.transform = 'translate3d(0, ' + (window.scrollY * -0.08) + 'px, 0)';
-        blobRaf = null;
-      });
-    }, { passive: true });
-  }
 
   // === Giscus skeleton fade-out when the comments iframe loads ===
   var giscusSkeleton = document.querySelector('.giscus-skeleton');

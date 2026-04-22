@@ -3,9 +3,6 @@
 {% for post in posts %}
   <article class="post-card h-entry">
     <div class="post-card-glow"></div>
-    {% if post.image and post.image != '/assets/og-default.png' %}
-      <img class="post-card-image u-photo" src="{{ post.image | relative_url }}" alt="" loading="lazy" decoding="async">
-    {% endif %}
     <div class="post-card-inner">
       {% include meta.html post=post preview=true %}
       <p class="post-card-excerpt p-summary">{{ post.excerpt | strip_html | truncatewords: 40 }}</p>

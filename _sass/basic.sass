@@ -84,24 +84,6 @@ html
 [data-theme="light"]
   color-scheme: light
 
-// Drop cap on first paragraph of a post body (Arabic-aware)
-article .e-content > p:first-of-type::first-letter
-  float: right
-  font-size: 3.4em
-  line-height: 0.9
-  font-weight: 700
-  color: var(--accent)
-  margin: 0.05em 0 0 var(--space-3)
-  padding: 0 var(--space-2)
-  letter-spacing: 0.04em
-
-@media (prefers-reduced-motion: reduce)
-  article .e-content > p:first-of-type::first-letter
-    font-size: 1em
-    float: none
-    margin: 0
-    padding: 0
-
 // Animated underline on body links (grows from start edge on hover)
 article .e-content p a,
 article .e-content li a
