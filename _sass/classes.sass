@@ -505,7 +505,12 @@ pre[data-lang]
     width: 14px
     height: 14px
 
-article .e-content.justify
+// Target paragraphs and list items directly — `p { text-align: start }`
+// in basic.sass has higher specificity than container-level text-align.
+article .e-content.justify,
+article .e-content.justify p,
+article .e-content.justify li,
+article .e-content.justify td
   text-align: justify
   text-justify: inter-word
 
