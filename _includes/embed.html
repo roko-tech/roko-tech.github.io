@@ -1,3 +1,21 @@
+{%- comment -%}
+  Renders an embed. For .mp4 / .webm / .mov / .m4v URLs we use a native
+  <video> element (better a11y, speed controls, no iframe overhead).
+  Anything else falls back to a 16:9 iframe.
+{%- endcomment -%}
+{%- assign url = include.url -%}
+{%- assign lower = url | downcase -%}
+{%- assign is_video = false -%}
+{%- if lower contains ".mp4" or lower contains ".webm" or lower contains ".mov" or lower contains ".m4v" -%}
+  {%- assign is_video = true -%}
+{%- endif -%}
+{% if is_video %}
+<video class="embed-video" controls playsinline preload="metadata" style="width:100%; border-radius: var(--radius-sm); margin: 1.5em 0;">
+  <source src="{{ url }}">
+  متصفحك لا يدعم عرض الفيديو — <a href="{{ url }}" rel="noopener noreferrer">افتح الملف مباشرة</a>.
+</video>
+{% else %}
 <div style="position: relative; margin: 1.5em 0; padding-bottom: 56.25%;">
-  <iframe style="position: absolute; border: 0;" src="{{ include.url }}" width="100%" height="100%" title="محتوى مضمّن" allowfullscreen loading="lazy"></iframe>
+  <iframe style="position: absolute; border: 0;" src="{{ url }}" width="100%" height="100%" title="محتوى مضمّن" allowfullscreen loading="lazy"></iframe>
 </div>
+{% endif %}

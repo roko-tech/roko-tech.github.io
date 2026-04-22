@@ -75,6 +75,23 @@
     }
   });
 
+  // === Figure + figcaption for images with a title attribute ===
+  // Authors using `![alt](src "caption")` get <img title="caption"> from kramdown;
+  // transform each such <p><img></p> into a proper <figure><figcaption>.
+  document.querySelectorAll('article img[title]').forEach(function (img) {
+    if (img.closest('figure')) return;
+    var p = img.closest('p');
+    if (!p || p.children.length !== 1 || p.textContent.trim() !== '') return;
+    var fig = document.createElement('figure');
+    var cap = document.createElement('figcaption');
+    cap.textContent = img.title;
+    img.removeAttribute('title');
+    p.parentNode.insertBefore(fig, p);
+    fig.appendChild(img);
+    fig.appendChild(cap);
+    p.remove();
+  });
+
   // === Copy button for code blocks ===
   document.querySelectorAll('pre').forEach(function (pre) {
     var btn = document.createElement('button');
@@ -84,8 +101,16 @@
     btn.setAttribute('aria-label', 'نسخ الكود');
     btn.addEventListener('click', function () {
       var done = function (ok) {
-        btn.textContent = ok ? 'تم!' : 'خطأ';
-        setTimeout(function () { btn.textContent = 'نسخ'; }, 2000);
+        if (ok) {
+          btn.classList.add('copied');
+          btn.textContent = '✓ تم';
+        } else {
+          btn.textContent = 'خطأ';
+        }
+        setTimeout(function () {
+          btn.classList.remove('copied');
+          btn.textContent = 'نسخ';
+        }, 2000);
       };
       var text = pre.textContent;
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -264,9 +289,9 @@
     setTimeout(function () { if (giscusSkeleton.parentNode) hideSkeleton(); }, 10000);
   }
 
-  // === Heading & image fade-in on scroll ===
+  // === Heading & image + blockquote fade-in on scroll ===
   if (!reducedMotion) {
-    var fadeEls = document.querySelectorAll('article h2, article h3, article img:not(.icono)');
+    var fadeEls = document.querySelectorAll('article h2, article h3, article img:not(.icono), article blockquote');
     if (fadeEls.length > 0) {
       fadeEls.forEach(function (el) { el.classList.add('fade-on-scroll'); });
       var fadeObs = new IntersectionObserver(function (entries) {
@@ -276,6 +301,58 @@
       }, { threshold: 0.15 });
       fadeEls.forEach(function (el) { fadeObs.observe(el); });
     }
+  }
+
+  // === Post-card entrance via IntersectionObserver (staggered) ===
+  var postCards = Array.prototype.slice.call(document.querySelectorAll('.post-card'));
+  if (postCards.length && 'IntersectionObserver' in window) {
+    if (reducedMotion) {
+      postCards.forEach(function (c) { c.classList.add('visible'); });
+    } else {
+      var cardObs = new IntersectionObserver(function (entries) {
+        var batch = entries.filter(function (e) { return e.isIntersecting; });
+        batch.forEach(function (e, i) {
+          setTimeout(function () { e.target.classList.add('visible'); }, i * 70);
+          cardObs.unobserve(e.target);
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+      postCards.forEach(function (c) { cardObs.observe(c); });
+      // Safety net: any card still hidden after 3s gets revealed unconditionally
+      setTimeout(function () { postCards.forEach(function (c) { c.classList.add('visible'); }); }, 3000);
+    }
+  }
+
+  // === Prefetch the next page on hover over home/prev/next cards ===
+  document.querySelectorAll('.post-card-link, .related-card').forEach(function (a) {
+    if (!a.href) return;
+    var fired = false;
+    a.addEventListener('mouseenter', function () {
+      if (fired) return;
+      fired = true;
+      var link = document.createElement('link');
+      link.rel = 'prefetch';
+      link.href = a.href;
+      document.head.appendChild(link);
+    });
+  });
+
+  // === Justify toggle for the post body ===
+  var justifyBtn = document.getElementById('justify-toggle');
+  var econtent = document.querySelector('article .e-content');
+  if (justifyBtn && econtent) {
+    var JUSTIFY_KEY = 'text-justify';
+    var applyJustify = function (on) {
+      econtent.classList.toggle('justify', on);
+      justifyBtn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      var label = justifyBtn.querySelector('span');
+      if (label) label.textContent = on ? 'طبيعي' : 'ضبط';
+    };
+    applyJustify(localStorage.getItem(JUSTIFY_KEY) === 'justify');
+    justifyBtn.addEventListener('click', function () {
+      var on = !econtent.classList.contains('justify');
+      applyJustify(on);
+      localStorage.setItem(JUSTIFY_KEY, on ? 'justify' : 'start');
+    });
   }
 
   // === Register service worker ===

@@ -244,12 +244,25 @@ hr
   margin: var(--space-6) 0
 
 blockquote
+  position: relative
   background: var(--bg-surface)
   border-inline-start: 3px solid var(--accent)
   border-radius: 0 var(--radius-sm) var(--radius-sm) 0
-  padding: var(--space-4) var(--space-5)
+  padding: var(--space-4) var(--space-7) var(--space-4) var(--space-5)
   margin: var(--space-5) 0
   color: var(--text-secondary)
+  &::before
+    content: "»"
+    position: absolute
+    top: var(--space-1)
+    inset-inline-start: var(--space-3)
+    font-size: 3.2em
+    line-height: 1
+    color: var(--accent)
+    opacity: 0.18
+    pointer-events: none
+    user-select: none
+    font-family: Georgia, "Times New Roman", serif
 
 blockquote, figure
   margin: var(--space-4) 0
@@ -631,6 +644,25 @@ main
   &.visible
     opacity: 1
     transform: translateY(0)
+
+// Blockquote slides in from start edge instead of up (subtle distinction)
+article blockquote.fade-on-scroll
+  transform: translateX(-12px)
+  transition: opacity 0.6s ease, transform 0.6s ease
+  &.visible
+    transform: translateX(0)
+
+// Figure / figcaption (img[title] → figure+figcaption via site.js)
+article figure
+  margin: var(--space-5) 0
+  text-align: center
+article figcaption
+  color: var(--text-secondary)
+  font-size: 0.85em
+  margin-top: var(--space-2)
+  font-style: italic
+  text-align: start
+  line-height: 1.5
 
 @media (prefers-reduced-motion: reduce)
   main

@@ -8,17 +8,16 @@
   border-radius: var(--radius-md)
   padding: var(--space-6)
   margin-bottom: var(--space-5)
-  transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, opacity 0.5s ease, transform 0.5s ease
   overflow: hidden
   transform-style: preserve-3d
   perspective: 800px
-  // Staggered entrance
+  // IntersectionObserver-triggered entrance (JS adds .visible when in viewport)
   opacity: 0
   transform: translateY(16px)
-  animation: card-enter 0.5s ease forwards
-  @for $i from 1 through 10
-    &:nth-child(#{$i})
-      animation-delay: #{($i - 1) * 0.08}s
+  &.visible
+    opacity: 1
+    transform: translateY(0)
   &:hover
     border-color: var(--card-border-hover)
     box-shadow: var(--shadow-card)
@@ -40,16 +39,11 @@
 .post-card:hover .post-card-glow
   opacity: 1
 
-@keyframes card-enter
-  to
-    opacity: 1
-    transform: translateY(0)
-
 @media (prefers-reduced-motion: reduce)
   .post-card
     opacity: 1
     transform: none
-    animation: none
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease
 
 .post-card-inner
   position: relative
@@ -429,6 +423,91 @@ pre[data-lang]::before
   font-family: ui-monospace, "Consolas", "Courier New", monospace
 pre[data-lang]
   padding-top: calc(var(--space-4) + 1em)
+
+// Filename caption above a code block (author adds `{: data-filename="X"}` IAL)
+.highlighter-rouge[data-filename]
+  position: relative
+  margin-top: calc(var(--space-5) + 1.6em)
+  &::before
+    content: attr(data-filename)
+    position: absolute
+    top: -1.8em
+    inset-inline-end: 0
+    background: var(--bg-elevated)
+    color: var(--text-secondary)
+    font-size: 0.8em
+    padding: 4px 12px
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0
+    border: 1px solid var(--border-subtle)
+    border-bottom: none
+    font-family: ui-monospace, "Consolas", "Courier New", monospace
+    direction: ltr
+
+// Rouge line highlight (works with `{% highlight lang hl_lines="3 5-7" %}`)
+.highlight .hll
+  display: block
+  background: rgba(99, 102, 241, 0.08)
+  margin: 0 calc(var(--space-5) * -1)
+  padding: 0 var(--space-5)
+  border-inline-start: 2px solid var(--accent)
+[data-theme="light"] .highlight .hll
+  background: rgba(79, 70, 229, 0.07)
+
+// Copy button: success state with bounce + check
+.copy-btn.copied
+  background: #22c55e !important
+  color: #fff !important
+  border-color: #22c55e !important
+  animation: copy-bounce 0.35s ease
+@keyframes copy-bounce
+  0%
+    transform: scale(1)
+  50%
+    transform: scale(1.12)
+  100%
+    transform: scale(1)
+@media (prefers-reduced-motion: reduce)
+  .copy-btn.copied
+    animation: none
+
+// Author avatar next to post meta
+.author-avatar
+  width: 22px
+  height: 22px
+  border-radius: 50%
+  border: 1px solid var(--border-subtle)
+  margin: 0
+  vertical-align: middle
+  display: inline-block
+  flex-shrink: 0
+
+// Justify toggle button
+.justify-toggle
+  background: transparent
+  border: 1px solid var(--border-subtle)
+  color: var(--text-tertiary)
+  cursor: pointer
+  padding: 2px 8px
+  border-radius: var(--radius-sm)
+  font-size: 0.8em
+  display: inline-flex
+  align-items: center
+  gap: 4px
+  transition: color 0.2s, border-color 0.2s, background 0.2s
+  &:hover
+    color: var(--text-primary)
+    border-color: var(--border-hover)
+    background: var(--bg-surface-hover)
+  &[aria-pressed="true"]
+    color: var(--accent)
+    border-color: var(--accent)
+  svg
+    width: 14px
+    height: 14px
+
+article .e-content.justify
+  text-align: justify
+  text-justify: inter-word
 
 // Related (prev/next) — mini cards
 .related
