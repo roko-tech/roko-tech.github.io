@@ -27,7 +27,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 2
+          fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Stamp last_modified_at on changed posts
@@ -35,7 +35,15 @@ jobs:
           TZ: Asia/Riyadh
         run: |
           today=$(date +%Y-%m-%d)
-          changed=$(git diff --name-only HEAD^ HEAD -- '_posts/*.md' || true)
+          before='${{ github.event.before }}'
+          # Diff the whole pushed range so multi-commit pushes are covered.
+          # On branch creation `before` is all-zeros — fall back to the last commit.
+          if [ -z "$before" ] || [ "$before" = "0000000000000000000000000000000000000000" ]; then
+            range="HEAD^ HEAD"
+          else
+            range="$before ${{ github.sha }}"
+          fi
+          changed=$(git diff --name-only $range -- '_posts/*.md' || true)
           if [ -z "$changed" ]; then
             echo "No post files changed in this commit, nothing to do."
             exit 0
@@ -55,8 +63,8 @@ jobs:
               # Insert right after the opening `---` line
               awk -v d="last_modified_at: $today" '
                 BEGIN { inserted = 0 }
-                NR == 1 && /^---$/ { print; next }
-                !inserted && /^---$/ { print d; print; inserted = 1; next }
+                NR == 1 && /^---\r?$/ { print; next }
+                !inserted && /^---\r?$/ { print d; print; inserted = 1; next }
                 { print }
               ' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
             fi

@@ -1216,11 +1216,18 @@ main#main-content { padding: 0 !important; animation: none !important; }
     else if (ctrl && key === 's') { e.preventDefault(); handleAction('export-md'); }
     else if (ctrl && e.shiftKey && key === 'x') { e.preventDefault(); handleAction('strike'); }
     else if (e.key === 'Tab' && !e.shiftKey) {
-      // Multi-line selection → indent each line. Otherwise insert 2 spaces.
+      // Multi-line selection → indent each line (never toggle; Shift+Tab dedents).
+      // Otherwise insert 2 spaces.
       var s = input.selectionStart, en = input.selectionEnd;
       if (en > s && input.value.substring(s, en).indexOf('\n') !== -1) {
         e.preventDefault();
-        prefixLines('  ');
+        var text = input.value;
+        var lineStart = text.lastIndexOf('\n', s - 1) + 1;
+        var lineEnd = text.indexOf('\n', en - 1);
+        if (lineEnd === -1) lineEnd = text.length;
+        var block = text.substring(lineStart, lineEnd);
+        var indented = block.split('\n').map(function (l) { return l === '' ? l : '  ' + l; }).join('\n');
+        input.value = text.substring(0, lineStart) + indented + text.substring(lineEnd);
         renderPreview();
         scheduleAutoSave();
       } else {
@@ -1318,40 +1325,15 @@ main#main-content { padding: 0 !important; animation: none !important; }
     });
   }
 
+  // Single-file upload (toolbar image picker) — delegates to the shared
+  // promise-based uploader below and adds progress/success toasts.
   function uploadImageToGitHub(file, alt, token) {
     showToast('جارٍ رفع الصورة...');
-    var reader = new FileReader();
-    reader.onload = function (ev) {
-      var b64 = bytesToBase64(new Uint8Array(ev.target.result));
-      var now = new Date();
-      var dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-      var ext = (file.name.match(/\.[^.]+$/) || [''])[0].toLowerCase() || '.png';
-      var base = file.name.replace(/\.[^.]+$/, '').replace(/[^a-zA-Z0-9-]/g, '-').replace(/-+/g, '-').slice(0, 40) || 'image';
-      var path = 'assets/uploads/' + dateStr + '-' + base + '-' + Math.random().toString(36).slice(2, 7) + ext;
-
-      fetchRetry('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(path), {
-        method: 'PUT',
-        headers: {
-          'Authorization': 'Bearer ' + token,
-          'Content-Type': 'application/json',
-          'Accept': 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28'
-        },
-        body: JSON.stringify({ message: 'رفع صورة: ' + path, content: b64 })
-      }).then(function (res) {
-        if (!res.ok) return res.json().then(function (err) { throw new Error(err.message || 'فشل رفع الصورة'); });
-        return res.json();
-      }).then(function () {
-        var url = '/' + path;
-        replaceSavedSelection('![' + alt + '](' + url + ')\n');
-        renderPreview();
-        scheduleAutoSave();
-        showToast('تم رفع الصورة إلى GitHub', 'success');
-      }).catch(function (err) {
-        showToast('خطأ: ' + err.message, 'error');
-      });
-    };
-    reader.readAsArrayBuffer(file);
+    uploadImageToGitHubAsync(file, alt, token).then(function () {
+      showToast('تم رفع الصورة إلى GitHub', 'success');
+    }, function (err) {
+      showToast('خطأ: ' + err.message, 'error');
+    });
   }
 
   // === Drag & drop images ===
@@ -1487,14 +1469,22 @@ main#main-content { padding: 0 !important; animation: none !important; }
 
   function parseTags(s) { return (s || '').split(',').map(function (t) { return t.trim(); }).filter(Boolean); }
 
+  // Escape a value for a YAML double-quoted scalar: backslash FIRST, then
+  // quote; collapse newlines to spaces so front-matter values stay one line.
+  // Without backslash escaping, a Windows path (e.g. C:\Users) in the title
+  // produces invalid YAML and breaks the Jekyll build for the whole site.
+  function yamlStr(s) {
+    return String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/[\r\n]+/g, ' ');
+  }
+
   function buildFrontMatter(meta) {
     var fm = '---\n';
-    fm += 'title: "' + meta.title.replace(/"/g, '\\"') + '"\n';
+    fm += 'title: "' + yamlStr(meta.title) + '"\n';
     fm += 'layout: post\n';
-    if (meta.description) fm += 'description: "' + meta.description.replace(/"/g, '\\"') + '"\n';
-    if (meta.excerpt) fm += 'excerpt: "' + meta.excerpt.replace(/"/g, '\\"') + '"\n';
-    if (meta.tags && meta.tags.length) fm += 'tags: [' + meta.tags.map(function (t) { return '"' + t + '"'; }).join(', ') + ']\n';
-    if (meta.permalink) fm += 'permalink: "' + meta.permalink + '"\n';
+    if (meta.description) fm += 'description: "' + yamlStr(meta.description) + '"\n';
+    if (meta.excerpt) fm += 'excerpt: "' + yamlStr(meta.excerpt) + '"\n';
+    if (meta.tags && meta.tags.length) fm += 'tags: [' + meta.tags.map(function (t) { return '"' + yamlStr(t) + '"'; }).join(', ') + ']\n';
+    if (meta.permalink) fm += 'permalink: "' + yamlStr(meta.permalink) + '"\n';
     fm += '---\n\n';
     return fm;
   }
@@ -1686,7 +1676,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
           if (res.status === 404) return create(filename, slug);
           if (res.ok) {
             if (tries >= 5) { throw new Error('فشل إيجاد اسم متاح'); }
-            return attempt(slug + '-' + (tries + 2), tries + 1);
+            return attempt(baseSlug + '-' + (tries + 2), tries + 1);
           }
           throw new Error('تعذّر التحقق من الملف (' + res.status + ')');
         })

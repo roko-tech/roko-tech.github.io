@@ -18,6 +18,7 @@
 <title>{% if page.title == site.title %}{{ site.title }}{% else %}{{ page.title }} | {{ site.title }}{% endif %}</title>
 <meta name="author" content="{{ page.author | default: site.author | escape }}">
 <meta name="google-site-verification" content="AUxYHZgptd884cgkIVwVQTthFgsJV49SzbcR4TwHGTQ" />
+{% if page.robots %}<meta name="robots" content="{{ page.robots }}">{% endif %}
 {% seo %}
 <link rel="canonical" href="{{ page.url | absolute_url }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -48,7 +49,7 @@
 {% assign pages = site.navigation %}
 
 <header>
-<a href="{{ site.url }}" aria-label="الصفحة الرئيسية"><img class="icono" id="site-logo" src="{{ '/assets/logo.jpg' | relative_url }}" alt="{{ site.title }}" width="42" height="42"></a>
+<a href="{{ '/' | relative_url }}" aria-label="الصفحة الرئيسية"><img class="icono" id="site-logo" src="{{ '/assets/logo.jpg' | relative_url }}" alt="{{ site.title }}" width="42" height="42"></a>
   <nav id="main-nav">
   {%- for item in pages -%}
     {%- assign node = site.pages | where: "name", item.file | first -%}

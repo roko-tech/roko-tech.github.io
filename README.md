@@ -49,7 +49,7 @@ permalink: /slug-en/
 _config.yml            إعدادات الموقع
 _layouts/              قوالب: default, post, page, tagpage
 _includes/             أجزاء مشتركة: archive, home, menu, meta, embed
-_sass/                 ملفات SCSS
+_sass/                 ملفات Sass
 _posts/                المقالات
 tag/                   صفحات الوسوم
 assets/                الصور والـ CSS والـ JS

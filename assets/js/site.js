@@ -172,7 +172,15 @@
       lb.classList.add('active');
     };
     var hide = function () { lb.classList.remove('active'); currentIdx = -1; };
-    images.forEach(function (img, idx) { img.addEventListener('click', function () { show(idx); }); });
+    images.forEach(function (img, idx) {
+      img.setAttribute('tabindex', '0');
+      img.setAttribute('role', 'button');
+      var open = function () { show(idx); };
+      img.addEventListener('click', open);
+      img.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
+      });
+    });
     lb.addEventListener('click', function (e) {
       // Backdrop or image click closes (cursor: zoom-out visually)
       if (e.target === lb || e.target === lbi) hide();
@@ -186,14 +194,8 @@
     });
   }
 
-  // === Arabic plural form for minutes ===
-  // 0/11+ → دقيقة, 1 → دقيقة واحدة, 2 → دقيقتين, 3-10 → دقائق
-  function arabicMinutes(n) {
-    if (n === 1) return 'دقيقة';
-    if (n === 2) return 'دقيقتين';
-    if (n >= 3 && n <= 10) return 'دقائق';
-    return 'دقيقة';
-  }
+  // === Arabic plural form for "minutes remaining" ===
+  // 1 → دقيقة واحدة, 2 → دقيقتان, 3-10 → دقائق, 0/11+ → دقيقة
   function formatRemaining(n) {
     if (n === 1) return 'دقيقة واحدة متبقية';
     if (n === 2) return 'دقيقتان متبقيتان';

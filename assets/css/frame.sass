@@ -10,34 +10,3 @@ body
 @media (min-width: 32em)
   body > header, body > article, body > main, body > footer
     padding: var(--space-5) var(--space-7)
-
-{% if site.show_related %}
-
-.related
-  margin-top: var(--space-6)
-  padding-top: var(--space-6)
-  border-top: 1px solid var(--border-subtle)
-  display: flex
-  justify-content: space-between
-  gap: var(--space-4)
-
-.related span
-  display: block
-  color: var(--text-tertiary)
-  font-size: 0.85em
-  margin-bottom: var(--space-2)
-
-.related a
-  font-size: 1.1em
-  font-weight: 600
-  color: var(--text-primary)
-  text-decoration: none
-  transition: color 0.2s
-  &:hover
-    color: var(--accent)
-
-@media (min-width: 30em)
-  .next
-    text-align: left
-
-{% endif %}

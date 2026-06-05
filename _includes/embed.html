@@ -2,6 +2,11 @@
   Renders an embed. For .mp4 / .webm / .mov / .m4v URLs we use a native
   <video> element (better a11y, speed controls, no iframe overhead).
   Anything else falls back to a 16:9 iframe.
+
+  NOTE: the site CSP (see _layouts/default.html) sets `media-src 'self'` and
+  `frame-src 'self' https://giscus.app`, so only SAME-ORIGIN media/iframes load.
+  To embed an external video/iframe (e.g. YouTube), add its origin to the CSP
+  first — otherwise the browser silently blocks it.
 {%- endcomment -%}
 {%- assign url = include.url -%}
 {%- assign lower = url | downcase -%}
