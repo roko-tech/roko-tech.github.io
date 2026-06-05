@@ -43,7 +43,9 @@ jobs:
           else
             range="$before ${{ github.sha }}"
           fi
-          changed=$(git diff --name-only $range -- '_posts/*.md' || true)
+          # core.quotepath=false: emit non-ASCII post filenames (Arabic) literally
+          # instead of "\330\245..." so `[ -f "$f" ]` below can match them.
+          changed=$(git -c core.quotepath=false diff --name-only $range -- '_posts/*.md' || true)
           if [ -z "$changed" ]; then
             echo "No post files changed in this commit, nothing to do."
             exit 0
