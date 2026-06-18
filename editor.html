@@ -509,6 +509,12 @@ main#main-content { padding: 0 !important; animation: none !important; }
   .preview-content { border-inline-start: none; border-top: 1px solid var(--border-subtle); }
   .toolbar-group:last-child { margin-inline-start: 0; }
 }
+
+/* Open-published-post picker */
+#open-post-list { max-height: 50vh; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; margin-bottom: 16px; }
+.open-post-item { text-align: start; background: var(--bg-base); border: 1px solid var(--border-subtle); color: var(--text-primary); border-radius: 8px; padding: 10px 12px; cursor: pointer; font-family: inherit; font-size: 0.85em; transition: background 0.15s, border-color 0.15s; }
+.open-post-item:hover { background: var(--bg-surface-hover); border-color: var(--border-default); }
+.draft-item.draft-linked .draft-title::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #0ea5e9; margin-inline-end: 6px; vertical-align: middle; }
 </style>
 
 <div class="editor-container">
@@ -550,6 +556,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
         <button type="button" data-action="hr" title="فاصل" aria-label="فاصل">—</button>
       </div>
       <div class="toolbar-group">
+        <button type="button" data-action="open-post" title="فتح مقالة منشورة للتعديل" aria-label="فتح مقالة منشورة"><svg viewBox="0 0 24 24"><path d="M3 7a1 1 0 0 1 1-1h5l2 2h8a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><polyline points="9 13 12 16 15 13"/><line x1="12" y1="10" x2="12" y2="16"/></svg></button>
         <button type="button" data-action="import" title="استيراد ملف" aria-label="استيراد"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
         <button type="button" data-action="export-md" title="تصدير Markdown (Ctrl+S)" aria-label="تصدير"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></button>
         <button type="button" data-action="copy-md" title="نسخ Markdown" aria-label="نسخ Markdown">MD</button>
@@ -557,6 +564,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
         <button type="button" data-action="settings" class="btn-settings" title="إعدادات" aria-label="إعدادات"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.32 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
         <button type="button" data-action="export-post" id="btn-export-post" class="btn-publish" title="تصدير كمقالة جاهزة" style="background:#22c55e;"><svg viewBox="0 0 24 24" width="14" height="14"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> تصدير مقالة</button>
         <button type="button" data-action="publish" id="btn-publish-action" class="btn-publish" title="نشر المقالة" style="display:none;"><svg viewBox="0 0 24 24" width="14" height="14"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg> نشر</button>
+        <button type="button" data-action="update-post" id="btn-update-post" class="btn-publish" title="تحديث المقالة المنشورة" style="display:none;background:#0ea5e9;">تحديث المقالة</button>
       </div>
     </div>
 
@@ -674,6 +682,17 @@ main#main-content { padding: 0 !important; animation: none !important; }
     <div class="modal-actions">
       <button type="button" class="btn-primary" id="confirm-ok">موافق</button>
       <button type="button" class="btn-secondary" id="confirm-cancel">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- Open Published Post Modal -->
+<div class="modal-overlay" id="open-post-modal">
+  <div class="modal" role="dialog" aria-modal="true" aria-label="فتح مقالة منشورة">
+    <h3>فتح مقالة منشورة للتعديل</h3>
+    <div id="open-post-list">جارٍ التحميل...</div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" data-modal-action="close" data-modal-target="open-post-modal">إغلاق</button>
     </div>
   </div>
 </div>
@@ -803,6 +822,8 @@ main#main-content { padding: 0 !important; animation: none !important; }
       item.setAttribute('role', 'button');
       item.setAttribute('tabindex', '0');
 
+      if (d.repo) { item.classList.add('draft-linked'); item.title = 'مقالة منشورة: ' + d.repo.path; }
+
       var title = document.createElement('span');
       title.className = 'draft-title';
       title.textContent = d.name || 'بدون اسم';
@@ -849,6 +870,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
     draftNameInput.value = drafts[id].name || '';
     renderPreview();
     renderDrafts();
+    updatePublishVisibility();
     input.focus();
   }
   function newDraft() {
@@ -864,6 +886,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
     draftNameInput.value = drafts[id].name;
     renderPreview();
     renderDrafts();
+    updatePublishVisibility();
     input.focus();
   }
   function deleteCurrentDraftSilent() {
@@ -1179,6 +1202,8 @@ main#main-content { padding: 0 !important; animation: none !important; }
         return;
       case 'export-md': exportMarkdown(); return;
       case 'publish': openPublishModal(); return;
+      case 'open-post': openPostPicker(); return;
+      case 'update-post': updatePost(); return;
       case 'settings': openModal('settings-modal'); updateTokenStatus(); return;
       case 'copy-md':
         navigator.clipboard.writeText(input.value).then(
@@ -1496,13 +1521,151 @@ main#main-content { padding: 0 !important; animation: none !important; }
     var token = sessionStorage.getItem(TOKEN_KEY);
     var publishBtn = document.getElementById('btn-publish-action');
     var exportBtn = document.getElementById('btn-export-post');
-    if (token) {
-      publishBtn.style.display = '';
+    var updateBtn = document.getElementById('btn-update-post');
+    var drafts = loadDrafts();
+    var linked = currentDraftId && drafts[currentDraftId] && drafts[currentDraftId].repo;
+    if (linked) {
+      // Editing an existing post → only the "update in place" action applies
+      updateBtn.style.display = '';
+      publishBtn.style.display = 'none';
       exportBtn.style.display = 'none';
     } else {
-      publishBtn.style.display = 'none';
-      exportBtn.style.display = '';
+      updateBtn.style.display = 'none';
+      if (token) {
+        publishBtn.style.display = '';
+        exportBtn.style.display = 'none';
+      } else {
+        publishBtn.style.display = 'none';
+        exportBtn.style.display = '';
+      }
     }
+  }
+
+  // === Edit existing posts: open from repo → edit body → update in place ===
+  // The post's front matter is preserved verbatim (no YAML round-trip, so no
+  // field loss); only the body is editable here. last_modified_at is re-stamped
+  // by the last-modified GitHub Action on the resulting push.
+  function ghHeaders(token) {
+    return {
+      'Authorization': 'Bearer ' + token,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
+  }
+  function base64ToUtf8(b64) {
+    var bin = atob((b64 || '').replace(/\s/g, ''));
+    var bytes = new Uint8Array(bin.length);
+    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return new TextDecoder().decode(bytes);
+  }
+  function splitFrontMatter(text) {
+    var m = /^(---\r?\n[\s\S]*?\r?\n---\r?\n)([\s\S]*)$/.exec(text);
+    if (!m) return { frontMatter: '', body: text };
+    return { frontMatter: m[1], body: m[2].replace(/^\r?\n+/, '') };
+  }
+  function openPostPicker() {
+    var token = sessionStorage.getItem(TOKEN_KEY);
+    if (!token) {
+      showToast('يتطلب فتح المقالات GitHub Token — استخدم الإعدادات', 'error');
+      openModal('settings-modal'); updateTokenStatus(); return;
+    }
+    var listEl = document.getElementById('open-post-list');
+    listEl.textContent = 'جارٍ التحميل...';
+    openModal('open-post-modal');
+    fetchRetry('https://api.github.com/repos/' + REPO + '/contents/_posts', { headers: ghHeaders(token) })
+      .then(function (res) {
+        if (!res.ok) throw new Error('تعذّر قراءة قائمة المقالات (' + res.status + ')');
+        return res.json();
+      })
+      .then(function (list) {
+        renderPostList((list || []).filter(function (f) { return /\.md$/.test(f.name); }), token);
+      })
+      .catch(function (err) { listEl.textContent = 'خطأ: ' + err.message; });
+  }
+  function renderPostList(files, token) {
+    var listEl = document.getElementById('open-post-list');
+    listEl.innerHTML = '';
+    if (!files.length) { listEl.textContent = 'لا توجد مقالات منشورة'; return; }
+    // Filenames begin with YYYY-MM-DD — reverse sort shows newest first
+    files.sort(function (a, b) { return a.name < b.name ? 1 : -1; });
+    files.forEach(function (f) {
+      var item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'open-post-item';
+      item.textContent = f.name.replace(/\.md$/, '');
+      item.addEventListener('click', function () { openPostForEdit(f, token); });
+      listEl.appendChild(item);
+    });
+  }
+  function openPostForEdit(file, token) {
+    showToast('جارٍ فتح المقالة...');
+    fetchRetry('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(file.path), { headers: ghHeaders(token) })
+      .then(function (res) {
+        if (!res.ok) throw new Error('تعذّر فتح المقالة (' + res.status + ')');
+        return res.json();
+      })
+      .then(function (info) {
+        var parts = splitFrontMatter(base64ToUtf8(info.content || ''));
+        var titleMatch = /^title:\s*["']?(.*?)["']?\s*$/m.exec(parts.frontMatter);
+        var title = (titleMatch && titleMatch[1]) || file.name.replace(/\.md$/, '');
+        var drafts = loadDrafts();
+        // Already open? Just switch to that draft instead of duplicating it.
+        for (var k in drafts) {
+          if (drafts[k].repo && drafts[k].repo.path === file.path) {
+            closeModal('open-post-modal'); switchDraft(k);
+            showToast('المقالة مفتوحة بالفعل', 'success'); return;
+          }
+        }
+        var id = uid();
+        drafts[id] = { name: title, content: parts.body, updatedAt: Date.now(), repo: { path: file.path, frontMatter: parts.frontMatter } };
+        saveDrafts(drafts);
+        closeModal('open-post-modal');
+        switchDraft(id);
+        showToast('تم فتح: ' + title, 'success');
+      })
+      .catch(function (err) { showToast('خطأ: ' + err.message, 'error'); });
+  }
+  function updatePost() {
+    var token = sessionStorage.getItem(TOKEN_KEY);
+    if (!token) { showToast('يجب إعداد GitHub Token أولاً', 'error'); openModal('settings-modal'); updateTokenStatus(); return; }
+    var drafts = loadDrafts();
+    var d = currentDraftId ? drafts[currentDraftId] : null;
+    if (!d || !d.repo) { showToast('هذه المسودة غير مرتبطة بمقالة منشورة', 'error'); return; }
+    if (!input.value.trim()) { showToast('المقالة فارغة', 'error'); return; }
+    flushSave(); // persist the local body before pushing
+    var path = d.repo.path;
+    var body = input.value.replace(/^\r?\n+/, '');
+    var newContent = d.repo.frontMatter ? d.repo.frontMatter + '\n' + body : body;
+    var apiUrl = 'https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(path);
+    var headers = ghHeaders(token);
+    var btn = document.getElementById('btn-update-post');
+    btn.disabled = true; btn.textContent = 'جارٍ الحفظ...';
+    // GET the current sha first — the last-modified Action re-stamps the file
+    // after each push, so a cached sha would 409 on the next save.
+    fetchRetry(apiUrl, { headers: headers })
+      .then(function (res) {
+        if (!res.ok) throw new Error('تعذّر إيجاد المقالة (' + res.status + ')');
+        return res.json();
+      })
+      .then(function (info) {
+        return fetchRetry(apiUrl, {
+          method: 'PUT',
+          headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+          body: JSON.stringify({ message: 'تحديث مقالة: ' + path, content: utf8ToBase64(newContent), sha: info.sha })
+        });
+      })
+      .then(function (res) {
+        if (!res.ok) return res.json().then(function (e) { throw new Error(e.message || 'فشل التحديث'); });
+        return res.json();
+      })
+      .then(function () {
+        btn.disabled = false; btn.textContent = 'تحديث المقالة';
+        showToast('تم تحديث المقالة بنجاح', 'success');
+      })
+      .catch(function (err) {
+        btn.disabled = false; btn.textContent = 'تحديث المقالة';
+        showToast('خطأ: ' + err.message, 'error');
+      });
   }
 
   // === Resize handle (with persistence) ===
