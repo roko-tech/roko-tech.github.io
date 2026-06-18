@@ -43,7 +43,7 @@ layout: default
       {% assign header_id = header_content | split: 'id="' %}
       {% if header_id.size > 1 %}
         {% assign id = header_id[1] | split: '"' | first %}
-        {% assign title = header_content | split: '>' | last %}
+        {% assign title = header_content | strip_html | split: '>' | last %}
         {% if level_char == '3' %}
         <li class="toc-h3"><a href="#{{ id }}">{{ title }}</a></li>
         {% else %}
@@ -152,23 +152,3 @@ layout: default
     {% endif %}
   </footer>
 {% endif %}
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": {{ page.title | jsonify }},
-  "description": {{ page.description | default: page.excerpt | strip_html | truncate: 160 | jsonify }},
-  "image": "{{ page.image | default: '/assets/og-default.png' | absolute_url }}",
-  "author": { "@type": "Person", "name": {{ site.author | jsonify }} },
-  "datePublished": "{{ page.date | date_to_xmlschema }}",
-  {% if page.last_modified_at %}"dateModified": "{{ page.last_modified_at | date_to_xmlschema }}",{% endif %}
-  "inLanguage": "{{ site.lang }}",
-  "url": "{{ page.url | absolute_url }}",
-  "publisher": {
-    "@type": "Organization",
-    "name": {{ site.title | jsonify }},
-    "url": "{{ site.url }}"
-  }
-}
-</script>

@@ -94,6 +94,9 @@
 
   // === Copy button for code blocks ===
   document.querySelectorAll('pre').forEach(function (pre) {
+    // Capture the code text BEFORE appending the button, else pre.textContent
+    // would include the button's own label ('نسخ') in the copied output.
+    var codeText = pre.textContent;
     var btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'copy-btn';
@@ -112,7 +115,7 @@
           btn.textContent = 'نسخ';
         }, 2000);
       };
-      var text = pre.textContent;
+      var text = codeText;
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
       } else {
@@ -132,21 +135,25 @@
   });
 
   // === Cursor glow + 3D tilt on post cards ===
-  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var reducedMotionMql = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var reducedMotion = reducedMotionMql.matches;
   document.querySelectorAll('.post-card').forEach(function (card) {
     var glow = card.querySelector('.post-card-glow');
+    var rect = null; // cached on enter — avoids a layout-flushing getBoundingClientRect per move
+    card.addEventListener('mouseenter', function () { rect = card.getBoundingClientRect(); });
     card.addEventListener('mousemove', function (e) {
-      var r = card.getBoundingClientRect();
+      var r = rect || (rect = card.getBoundingClientRect());
       var x = e.clientX - r.left, y = e.clientY - r.top;
       if (glow) { glow.style.left = x + 'px'; glow.style.top = y + 'px'; }
-      if (!reducedMotion) {
+      if (!reducedMotionMql.matches) {
         var rotY = ((x / r.width) - 0.5) * 6;
         var rotX = (0.5 - (y / r.height)) * 6;
         card.style.transform = 'perspective(800px) rotateX(' + rotX + 'deg) rotateY(' + rotY + 'deg) translateY(-2px)';
       }
     });
     card.addEventListener('mouseleave', function () {
-      if (!reducedMotion) card.style.transform = '';
+      rect = null;
+      card.style.transform = '';
     });
   });
 
@@ -160,6 +167,10 @@
   var lb = document.getElementById('lightbox');
   var lbi = document.getElementById('lightbox-img');
   if (lb && lbi) {
+    lb.setAttribute('role', 'dialog');
+    lb.setAttribute('aria-modal', 'true');
+    lb.setAttribute('tabindex', '-1');
+    var lastFocused = null;
     // Skip images explicitly marked decorative (alt="")
     var images = Array.prototype.slice.call(document.querySelectorAll('article img:not(.icono)'))
       .filter(function (img) { return img.getAttribute('alt') !== ''; });
@@ -170,12 +181,17 @@
       lbi.src = images[idx].src;
       lbi.alt = images[idx].alt || '';
       lb.classList.add('active');
+      lb.focus();
     };
-    var hide = function () { lb.classList.remove('active'); currentIdx = -1; };
+    var hide = function () {
+      lb.classList.remove('active');
+      currentIdx = -1;
+      if (lastFocused) { lastFocused.focus(); lastFocused = null; }
+    };
     images.forEach(function (img, idx) {
       img.setAttribute('tabindex', '0');
       img.setAttribute('role', 'button');
-      var open = function () { show(idx); };
+      var open = function () { lastFocused = img; show(idx); };
       img.addEventListener('click', open);
       img.addEventListener('keydown', function (e) {
         if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); }
@@ -214,7 +230,7 @@
   var contentRoot = document.querySelector('article');
   // Use the element that marks the end of actual reading content (before share/giscus)
   var contentEndMarker = document.querySelector('.share-buttons, .post-tags, article hr');
-  var contentTop = 0, contentHeight = 0;
+  var contentTop = 0, contentHeight = 0, docH = 0;
 
   function measureContent() {
     if (!contentRoot) return;
@@ -228,6 +244,10 @@
     }
   }
 
+  // Cache the page's scrollable height so onScroll doesn't read scrollHeight
+  // (a layout-flushing property) on every scroll tick.
+  function measureDoc() { docH = document.documentElement.scrollHeight - window.innerHeight; }
+
   // The Arabic phrase is rendered server-side (post.html); we just need the minute
   // count preserved for the scroll-driven "متبقية" updates below.
 
@@ -239,7 +259,6 @@
     // BTT progress ring tracks the *whole page* so it fills at the actual
     // bottom, not when the reading content ends.
     if (bttProgress) {
-      var docH = document.documentElement.scrollHeight - window.innerHeight;
       var docProg = docH > 0 ? Math.min(1, Math.max(0, y / docH)) : 0;
       bttProgress.style.strokeDashoffset = ringLen - (ringLen * docProg);
     }
@@ -270,6 +289,9 @@
     window.addEventListener('resize', measureContent, { passive: true });
     window.addEventListener('load', measureContent);
   }
+  measureDoc();
+  window.addEventListener('resize', measureDoc, { passive: true });
+  window.addEventListener('load', measureDoc);
   window.addEventListener('scroll', onScroll, { passive: true });
 
   // === Giscus skeleton fade-out when the comments iframe loads ===

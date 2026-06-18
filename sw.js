@@ -26,6 +26,22 @@ self.addEventListener('activate', function (e) {
   );
 });
 
+var RUNTIME_MAX = 60; // cap runtime cache entries to avoid unbounded growth
+
+function cachePut(req, res) {
+  caches.open(RUNTIME_CACHE).then(function (c) {
+    c.put(req, res).then(function () { trimCache(c, RUNTIME_MAX); });
+  });
+}
+function trimCache(cache, max) {
+  cache.keys().then(function (keys) {
+    var overflow = keys.length - max;
+    if (overflow <= 0) return;
+    // keys() yields oldest-first; evict from the front
+    keys.slice(0, overflow).forEach(function (k) { cache.delete(k); });
+  });
+}
+
 self.addEventListener('fetch', function (e) {
   var req = e.request;
   if (req.method !== 'GET') return;
@@ -45,10 +61,17 @@ self.addEventListener('fetch', function (e) {
   if (isHtml || isCode) {
     e.respondWith(
       fetch(req).then(function (res) {
-        var clone = res.clone();
-        caches.open(RUNTIME_CACHE).then(function (c) { c.put(req, clone); });
+        // Only cache successful responses — never persist a 404/5xx error body
+        if (res.ok) cachePut(req, res.clone());
         return res;
-      }).catch(function () { return caches.match(req); })
+      }).catch(function () {
+        return caches.match(req).then(function (r) {
+          // Offline + never-cached: fall back to the precached shell for
+          // navigations; for CSS/JS let it fail rather than serve HTML.
+          if (r) return r;
+          return isHtml ? caches.match(SHELL[0]) : undefined;
+        });
+      })
     );
     return;
   }
@@ -57,10 +80,7 @@ self.addEventListener('fetch', function (e) {
   e.respondWith(
     caches.match(req).then(function (cached) {
       return cached || fetch(req).then(function (res) {
-        if (res.ok) {
-          var clone = res.clone();
-          caches.open(RUNTIME_CACHE).then(function (c) { c.put(req, clone); });
-        }
+        if (res.ok) cachePut(req, res.clone());
         return res;
       });
     })

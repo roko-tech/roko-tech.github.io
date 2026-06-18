@@ -2,6 +2,7 @@ title: "مقالات تقنية"
 author: "Pantera"
 description: "مدونة تقنية عربية تغطي مواضيع البرمجة والتقنية"
 url: "https://roko-tech.github.io"
+logo: "/assets/logo.jpg"
 timezone: "Asia/Riyadh"
 defaults:
   - scope:
@@ -18,6 +19,7 @@ lang: "ar"
 excerpt_separator: "\n\n\n"
 date_format: "%d-%m-%Y"
 paginate: 8
+paginate_path: "/page:num/"
 # Layout
 
 show_excerpts: true        # show article excerpts on the home page

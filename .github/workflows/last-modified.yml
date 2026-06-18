@@ -50,7 +50,9 @@ jobs:
             echo "No post files changed in this commit, nothing to do."
             exit 0
           fi
-          for f in $changed; do
+          # Iterate newline-delimited paths safely — a filename containing a
+          # space would be word-split by `for f in $changed` and silently skipped.
+          while IFS= read -r f; do
             [ -f "$f" ] || continue
             # Respect opt-out: if front matter contains `manual_date: true`,
             # leave last_modified_at alone.
@@ -58,9 +60,10 @@ jobs:
               echo "Skipping $f (manual_date: true)"
               continue
             fi
-            if grep -qE '^last_modified_at:' "$f"; then
-              # Replace existing value
-              sed -i -E "s|^last_modified_at:.*|last_modified_at: $today|" "$f"
+            if sed -n '1,/^---[[:space:]]*$/p' "$f" | grep -qE '^last_modified_at:'; then
+              # Replace existing value (scoped to the front-matter block only, so a
+              # body line starting `last_modified_at:` in a code fence isn't rewritten)
+              sed -i -E "1,/^---[[:space:]]*$/ s|^last_modified_at:.*|last_modified_at: $today|" "$f"
             else
               # Insert right after the opening `---` line
               awk -v d="last_modified_at: $today" '
@@ -71,7 +74,7 @@ jobs:
               ' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
             fi
             echo "Stamped $f -> $today"
-          done
+          done <<< "$changed"
 
       - name: Commit if anything changed
         run: |

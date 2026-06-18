@@ -840,6 +840,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
   }
   function switchDraft(id) {
     flushSave();
+    clearTimeout(saveTimer);
     var drafts = loadDrafts();
     if (!drafts[id]) return;
     currentDraftId = id;
@@ -852,6 +853,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
   }
   function newDraft() {
     flushSave();
+    clearTimeout(saveTimer);
     var id = uid();
     var drafts = loadDrafts();
     drafts[id] = { name: 'مسودة جديدة', content: '', updatedAt: Date.now() };
@@ -1447,9 +1449,9 @@ main#main-content { padding: 0 !important; animation: none !important; }
       { id: 'tags', label: 'الوسوم (مفصولة بفاصلة)', placeholder: 'تقنية, لينكس' },
       { id: 'slug', label: 'slug بالإنجليزية (اختياري)', placeholder: 'my-post' }
     ], function (v) {
-      if (!v || !v.title.trim()) return;
+      if (!v || !(v.title || '').trim()) return;
       var title = v.title.trim();
-      var fm = buildFrontMatter({ title: title, description: v.desc.trim(), excerpt: v.excerpt.trim(), tags: parseTags(v.tags) });
+      var fm = buildFrontMatter({ title: title, description: (v.desc || '').trim(), excerpt: (v.excerpt || '').trim(), tags: parseTags(v.tags) });
       var now = new Date();
       var dateStr = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
       var slug = (v.slug.trim() || slugify(title)) || 'post';
@@ -1647,6 +1649,36 @@ main#main-content { padding: 0 !important; animation: none !important; }
     window.__pendingPublish = { title: title, desc: desc, excerpt: excerpt, tags: tags, customSlug: customSlug, content: content, token: token };
   }
 
+  // Best-effort: create a /tag/<tag>/ stub for any tag that lacks one, so the
+  // post's tag links don't 404. Fire-and-forget — failures never block publish.
+  function ensureTagStubs(tags, token) {
+    if (!tags || !tags.length) return;
+    var headers = {
+      'Authorization': 'Bearer ' + token,
+      'Accept': 'application/vnd.github+json',
+      'X-GitHub-Api-Version': '2022-11-28'
+    };
+    tags.forEach(function (tag) {
+      var path = 'tag/' + tag + '.md';
+      var apiUrl = 'https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(path);
+      fetch(apiUrl, { headers: headers }).then(function (res) {
+        if (res.status !== 404) return; // already exists (or unknown) — leave it
+        var stub = '---\n'
+          + 'layout: tagpage\n'
+          + 'title: "' + yamlStr(tag) + '"\n'
+          + 'tag: "' + yamlStr(tag) + '"\n'
+          + 'permalink: "/tag/' + yamlStr(tag) + '/"\n'
+          + 'description: "' + yamlStr('مقالات مصنّفة تحت وسم ' + tag) + '"\n'
+          + '---\n';
+        return fetch(apiUrl, {
+          method: 'PUT',
+          headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+          body: JSON.stringify({ message: 'إنشاء صفحة وسم: ' + tag, content: utf8ToBase64(stub) })
+        });
+      }).catch(function () {});
+    });
+  }
+
   function confirmPublish() {
     var p = window.__pendingPublish;
     if (!p) { showToast('لا توجد مقالة معلّقة للنشر', 'error'); return; }
@@ -1669,16 +1701,24 @@ main#main-content { padding: 0 !important; animation: none !important; }
       'X-GitHub-Api-Version': '2022-11-28'
     };
 
-    function attempt(slug, tries) {
-      var filename = '_posts/' + dateStr + '-' + slug + '.md';
-      fetchRetry('https://api.github.com/repos/' + REPO + '/contents/' + encodeURIComponent(filename), { headers: apiHeaders })
+    // List existing posts once so we can detect slug collisions across ALL
+    // dates: two posts sharing a slug on different days would otherwise build
+    // to the same permalink (/slug/) and silently clobber each other.
+    function findSlugAndCreate() {
+      fetchRetry('https://api.github.com/repos/' + REPO + '/contents/_posts', { headers: apiHeaders })
         .then(function (res) {
-          if (res.status === 404) return create(filename, slug);
-          if (res.ok) {
-            if (tries >= 5) { throw new Error('فشل إيجاد اسم متاح'); }
-            return attempt(baseSlug + '-' + (tries + 2), tries + 1);
-          }
-          throw new Error('تعذّر التحقق من الملف (' + res.status + ')');
+          if (!res.ok && res.status !== 404) throw new Error('تعذّر قراءة قائمة المقالات (' + res.status + ')');
+          return res.status === 404 ? [] : res.json();
+        })
+        .then(function (list) {
+          var taken = {};
+          (list || []).forEach(function (f) {
+            var m = /^\d{4}-\d{2}-\d{2}-(.+)\.md$/.exec(f.name);
+            if (m) taken[m[1]] = true;
+          });
+          var slug = baseSlug, n = 2;
+          while (taken[slug]) { slug = baseSlug + '-' + n; n++; }
+          return create('_posts/' + dateStr + '-' + slug + '.md', slug);
         })
         .catch(onError);
     }
@@ -1704,6 +1744,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
         ['publish-title', 'publish-desc', 'publish-excerpt', 'publish-tags', 'publish-slug'].forEach(function (id) {
           var el = document.getElementById(id); if (el) el.value = '';
         });
+        ensureTagStubs(tags, token);
         deleteCurrentDraftSilent();
         input.value = '';
         renderPreview();
@@ -1718,7 +1759,7 @@ main#main-content { padding: 0 !important; animation: none !important; }
       showToast('خطأ: ' + err.message, 'error');
     }
 
-    attempt(baseSlug, 0);
+    findSlugAndCreate();
   }
 
   // === Mobile tabs ===

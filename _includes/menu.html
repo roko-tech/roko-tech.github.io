@@ -1,9 +1,12 @@
-<nav>
+<nav{% if include.id %} id="{{ include.id }}"{% endif %}>
 {%- for item in include.menu -%}
   {%- assign node = site.pages | where: "name", item.file | first -%}
   {%- assign url = item.url | default: node.url -%}
   {%- assign title = item.title | default: node.title -%}
-  <a href="{{ url | relative_url }}" {% if url == page.url %}class="selected"{% endif %}{% if item.url contains "://" %} rel="noopener noreferrer" target="_blank"{% endif %}>
+  {%- assign rel_values = "" -%}
+  {%- if item.url contains "://" %}{%- assign rel_values = "noopener noreferrer" -%}{% endif -%}
+  {%- if item.url contains "x.com" or item.url contains "twitter.com" or item.url contains "github.com" %}{%- assign rel_values = rel_values | append: " me" | strip -%}{% endif -%}
+  <a href="{{ url | relative_url }}"{% if url == page.url %} class="selected"{% endif %}{% if item.url contains "://" %} target="_blank"{% endif %}{% if rel_values != "" %} rel="{{ rel_values }}"{% endif %}>
     {{- title -}}
   </a>
 {%- endfor -%}

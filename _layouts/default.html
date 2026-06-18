@@ -15,12 +15,10 @@
 <link rel="icon" type="image/png" sizes="192x192" href="{{ '/assets/icon-192.png' | relative_url }}">
 <link rel="icon" type="image/png" sizes="512x512" href="{{ '/assets/icon-512.png' | relative_url }}">
 <link rel="apple-touch-icon" href="{{ '/assets/apple-touch-icon.png' | relative_url }}">
-<title>{% if page.title == site.title %}{{ site.title }}{% else %}{{ page.title }} | {{ site.title }}{% endif %}</title>
 <meta name="author" content="{{ page.author | default: site.author | escape }}">
 <meta name="google-site-verification" content="AUxYHZgptd884cgkIVwVQTthFgsJV49SzbcR4TwHGTQ" />
 {% if page.robots %}<meta name="robots" content="{{ page.robots }}">{% endif %}
 {% seo %}
-<link rel="canonical" href="{{ page.url | absolute_url }}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="{{ '/assets/css/frame.css' | relative_url }}?v={{ site.time | date: '%s' }}">
@@ -46,24 +44,9 @@
 <div class="reading-progress" aria-hidden="true"></div>
 {% endif %}
 
-{% assign pages = site.navigation %}
-
 <header>
 <a href="{{ '/' | relative_url }}" aria-label="الصفحة الرئيسية"><img class="icono" id="site-logo" src="{{ '/assets/logo.jpg' | relative_url }}" alt="{{ site.title }}" width="42" height="42"></a>
-  <nav id="main-nav">
-  {%- for item in pages -%}
-    {%- assign node = site.pages | where: "name", item.file | first -%}
-    {%- assign url = item.url | default: node.url -%}
-    {%- assign title = item.title | default: node.title -%}
-    {%- assign rel_values = "" -%}
-    {%- if url == page.url %}{%- assign cls = "selected" -%}{% else %}{%- assign cls = "" -%}{% endif -%}
-    {%- if item.url contains "://" %}{%- assign rel_values = "noopener noreferrer" -%}{% endif -%}
-    {%- if item.url contains "x.com" or item.url contains "twitter.com" or item.url contains "github.com" %}{%- assign rel_values = rel_values | append: " me" | strip -%}{% endif -%}
-    <a href="{{ url | relative_url }}"{% if cls != "" %} class="{{ cls }}"{% endif %}{% if item.url contains "://" %} target="_blank"{% endif %}{% if rel_values != "" %} rel="{{ rel_values }}"{% endif %}>
-      {{- title -}}
-    </a>
-  {%- endfor -%}
-  </nav>
+  {% include menu.html menu=site.navigation id="main-nav" %}
   <div class="header-actions">
     <button type="button" class="theme-toggle" id="theme-toggle" aria-label="تبديل المظهر">
       <svg class="theme-icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -108,6 +91,21 @@
 </nav>
 {% endif %}
 
+{% if page.layout == "post" or page.layout == "tagpage" %}
+{% if page.layout == "post" %}{% assign crumb_leaf = page.title %}{% else %}{% assign crumb_leaf = page.tag %}{% endif %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "الرئيسية", "item": "{{ '/' | absolute_url }}" },
+    { "@type": "ListItem", "position": 2, "name": "الأرشيف", "item": "{{ '/archive.html' | absolute_url }}" },
+    { "@type": "ListItem", "position": 3, "name": {{ crumb_leaf | jsonify }} }
+  ]
+}
+</script>
+{% endif %}
+
 <main id="main-content">
 {{ content }}
 </main>
@@ -131,24 +129,6 @@
   </svg>
   <svg class="btt-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></svg>
 </button>
-
-{% if page.url == "/" %}
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "WebSite",
-  "name": {{ site.title | jsonify }},
-  "url": "{{ site.url }}",
-  "description": {{ site.description | jsonify }},
-  "inLanguage": "{{ site.lang }}",
-  "publisher": {
-    "@type": "Organization",
-    "name": {{ site.title | jsonify }},
-    "url": "{{ site.url }}"
-  }
-}
-</script>
-{% endif %}
 
 <script src="{{ '/assets/js/site.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>
 </body>
